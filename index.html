@@ -1,0 +1,1511 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Wizard Chess v3.1</title>
+<style>
+:root{
+  --bg:#0b0912; --panel:#171322cc; --gold:#d8b35a; --blue:#7fc7ff; --violet:#b06cff;
+  --light:#b8b1a1; --dark:#2c2735; --stone1:#544b55; --stone2:#181521;
+}
+*{box-sizing:border-box} body{margin:0; min-height:100vh; color:#eee; font-family:"Microsoft JhengHei", system-ui, sans-serif; background:radial-gradient(circle at 50% 15%,#2b1e45 0,#100d18 42%,#050408 100%); overflow-x:hidden;}
+body:before{content:""; position:fixed; inset:0; background:linear-gradient(115deg,transparent 0 38%,#ffffff08 40%,transparent 42% 100%), radial-gradient(circle at 20% 80%,#7fc7ff18,transparent 28%), radial-gradient(circle at 85% 70%,#b06cff18,transparent 28%); pointer-events:none;}
+.header{text-align:center; padding:18px 12px 8px; position:relative; z-index:1}.title{font-size:36px; letter-spacing:4px; color:#f7e3a0; text-shadow:0 0 12px #d8b35a,0 2px 0 #000}.subtitle{font-size:15px;color:#cfc7dc;margin-top:4px}.wrap{display:flex; gap:18px; justify-content:center; align-items:flex-start; padding:12px 18px 30px; position:relative; z-index:1}.game{position:relative}.boardFrame{padding:18px; border-radius:18px; background:linear-gradient(145deg,#62481d,#1b1420 35%,#85672c 70%,#21172a); box-shadow:0 20px 60px #000, inset 0 0 18px #fff2,0 0 30px #7fc7ff22; border:2px solid #caa85a99}.board{width:min(90vw,960px); height:min(90vw,960px); display:grid; grid-template-columns:repeat(8,1fr); grid-template-rows:repeat(8,1fr); border:3px solid #120d16; box-shadow:inset 0 0 30px #000; position:relative}.cell{position:relative; display:flex; align-items:center; justify-content:center; user-select:none; overflow:hidden}.cell.light{background:linear-gradient(135deg,#9b9486,#c7bd9e 45%,#807983)}.cell.dark{background:linear-gradient(135deg,#16121d,#333044 55%,#11101a)}.cell:before{content:""; position:absolute; inset:0; background:radial-gradient(circle at 30% 25%,#ffffff16,transparent 24%), linear-gradient(45deg,transparent 45%,#ffffff08 47%,transparent 49%); opacity:.7}.cell.rune:after{content:"✦"; position:absolute; font-size:30px; color:#8ed6ff55; text-shadow:0 0 12px #7fc7ff; transform:rotate(15deg)}.coord{position:absolute; left:4px; top:2px; font-size:11px; color:#0009; font-weight:bold}.dark .coord{color:#fff7}.piece{position:relative; z-index:3; width:96%; height:96%; cursor:pointer; filter:drop-shadow(0 8px 4px #000b); transition:transform .16s, filter .16s}.piece:hover{transform:translateY(-4px) scale(1.04)}.piece.white{--main:#ddd8ca;--edge:#ffffff;--aura:#7fc7ff}.piece.black{--main:#35313a;--edge:#a789ff;--aura:#b06cff}.piece svg{width:100%;height:100%}.piece .fill{fill:var(--main); stroke:var(--edge); stroke-width:4; paint-order:stroke fill}.piece .gem{fill:var(--aura); filter:drop-shadow(0 0 6px var(--aura))}.piece.selected{filter:drop-shadow(0 0 14px var(--aura)) drop-shadow(0 8px 4px #000)}.piece.selected:before{content:"";position:absolute;inset:4%;border-radius:50%;border:3px solid #ffe28a;box-shadow:0 0 18px #ffe28a;animation:pulse 1s infinite}@keyframes pulse{50%{opacity:.45;transform:scale(1.08)}}.hint:after{content:""; position:absolute; z-index:2; width:22%; height:22%; border-radius:50%; background:#ffe28acc; box-shadow:0 0 12px #ffe28a}.captureHint:after{content:"";position:absolute;z-index:2;inset:12%;border-radius:50%;border:4px solid #ff5b5b;box-shadow:0 0 16px #ff3333}.check{animation:checkflash .7s infinite}@keyframes checkflash{50%{box-shadow:inset 0 0 45px #ff2525;background:#5b1111}}.lastMove{box-shadow:inset 0 0 26px #f6d56b}.side{width:310px; min-height:960px; background:var(--panel); border:1px solid #d8b35a55; border-radius:16px; padding:14px; box-shadow:0 12px 40px #000a; backdrop-filter:blur(6px)}.side h2{font-size:20px; color:#f7e3a0; margin:0 0 10px; text-align:center}.status{padding:10px; border-radius:10px; background:#0005; border:1px solid #ffffff18; line-height:1.7}.controls{display:grid; gap:8px; margin:12px 0}.controls label{color:#d8b35a;font-size:13px;margin-top:2px}.controls button,.controls select{background:linear-gradient(#3d3153,#191426); color:#fff; border:1px solid #d8b35a88; border-radius:9px; padding:9px; font-size:15px; cursor:pointer}
+.controls select option{background:#181326;color:#f7e3a0}
+.controls select:focus{outline:2px solid #d8b35a;box-shadow:0 0 14px #d8b35a55}.controls button:hover{box-shadow:0 0 14px #d8b35a55}.grave{margin-top:12px; padding:10px; background:#0004; border-radius:10px; min-height:88px}.graveTitle{color:#d8b35a; margin-bottom:6px}.taken{display:flex;flex-wrap:wrap;gap:3px}.miniPiece{width:28px;height:28px}.log{margin-top:12px; height:170px; overflow:auto; background:#05040a99; border-radius:10px; padding:8px; font-size:13px; color:#d8d2e6}.modal{position:fixed; inset:0; background:#0009; display:none; align-items:center; justify-content:center; z-index:20}.modalBox{background:linear-gradient(145deg,#2d223d,#0e0b15); border:2px solid #d8b35a; border-radius:18px; padding:22px; text-align:center; box-shadow:0 0 40px #7fc7ff44}.promoChoices{display:flex; gap:12px; margin-top:14px}.promoChoices button{width:72px;height:72px;border-radius:12px;background:#15111e;border:1px solid #d8b35a;color:#fff;cursor:pointer}.promoChoices svg{width:58px;height:58px}.toast{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); z-index:10; font-size:44px; color:#f7e3a0; text-shadow:0 0 18px #d8b35a,0 4px 0 #000; opacity:0; pointer-events:none}.piece:after{content:"";position:absolute;inset:12%;border-radius:50%;background:radial-gradient(circle,#ffffff20,transparent 55%);opacity:.35;pointer-events:none}.piece.white svg{filter:drop-shadow(0 0 8px #7fc7ff55)}.piece.black svg{filter:drop-shadow(0 0 8px #b06cff55)}.piece.kill{animation:killBreak var(--killDur,2.5s) forwards;filter:drop-shadow(0 0 20px #ff5555) drop-shadow(0 8px 4px #000)}@keyframes killBreak{0%{transform:scale(1) rotate(0);opacity:1;filter:drop-shadow(0 0 8px #fff)}18%{transform:scale(1.22) rotate(-4deg);opacity:1;filter:drop-shadow(0 0 26px #fff)}36%{transform:scale(.98) rotate(8deg);opacity:.95;clip-path:polygon(0 0,100% 0,92% 38%,100% 100%,0 100%,13% 52%)}62%{transform:scale(.82) rotate(-12deg);opacity:.58;clip-path:polygon(8% 0,84% 6%,100% 52%,78% 100%,0 85%,20% 44%)}100%{transform:scale(.16) rotate(28deg) translateY(30px);opacity:0;clip-path:polygon(30% 0,70% 18%,100% 58%,60% 100%,0 60%)}}.slash{position:absolute;z-index:9;left:12%;right:12%;top:47%;height:7px;border-radius:999px;background:linear-gradient(90deg,transparent,#ffefb0,#ff3b3b,transparent);box-shadow:0 0 18px #ff3333;transform:rotate(-28deg);animation:slash var(--killDur,2.5s) forwards;pointer-events:none}@keyframes slash{0%{opacity:0;transform:translateX(-35%) rotate(-28deg) scaleX(.25)}28%{opacity:1}100%{opacity:0;transform:translateX(35%) rotate(-28deg) scaleX(1.2)}}.toast.show{animation:toast .9s}@keyframes toast{0%{opacity:0;transform:translate(-50%,-40%) scale(.7)}25%{opacity:1}100%{opacity:0;transform:translate(-50%,-70%) scale(1.15)}}
+.killOverlay{position:fixed;inset:0;z-index:18;display:none;pointer-events:none;overflow:hidden;background:radial-gradient(circle at 50% 50%,#ffffff00 0,#ffffff00 28%,#00000070 100%)}
+.killOverlay.show{display:block;animation:screenDim var(--killDur,2.5s) forwards}.killOverlay:before{content:"";position:absolute;left:50%;top:50%;width:36vmin;height:36vmin;border-radius:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,#fff 0 4%,#ffe7a6 5% 12%,#ff3b3b88 13% 28%,#8d4dff55 34%,transparent 62%);box-shadow:0 0 40px #fff,0 0 90px #ff4444,0 0 150px #8d4dff;animation:impactRing var(--killDur,2.5s) forwards}.killOverlay:after{content:"SHATTER";position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);font-size:min(13vw,150px);font-weight:900;letter-spacing:10px;color:#fff0d0;text-shadow:0 0 18px #fff,0 0 38px #ff4242,0 8px 0 #000;animation:killWord var(--killDur,2.5s) forwards}.shockLine{position:absolute;left:50%;top:50%;width:58vmin;height:8px;border-radius:999px;background:linear-gradient(90deg,transparent,#fff,#ff4545,#9b70ff,transparent);box-shadow:0 0 20px #fff;transform-origin:left center;opacity:0;animation:shockLine var(--killDur,2.5s) forwards}.stoneShard{position:absolute;left:50%;top:50%;width:18px;height:18px;background:linear-gradient(135deg,#f4ead6,#746b78 55%,#1b1824);clip-path:polygon(50% 0,100% 38%,72% 100%,8% 82%,0 28%);box-shadow:0 0 12px #fff8;animation:stoneFly var(--killDur,2.5s) forwards}.boardFrame.impact{animation:boardImpact var(--killDur,2.5s) forwards}@keyframes screenDim{0%{opacity:0}12%{opacity:1}100%{opacity:0}}@keyframes impactRing{0%{transform:translate(-50%,-50%) scale(.12);opacity:0}16%{opacity:1}58%{transform:translate(-50%,-50%) scale(2.4);opacity:.92}100%{transform:translate(-50%,-50%) scale(4.2);opacity:0}}@keyframes killWord{0%{opacity:0;transform:translate(-50%,-50%) scale(.55)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}55%{opacity:.86;filter:blur(0)}100%{opacity:0;transform:translate(-50%,-62%) scale(1.35);filter:blur(6px)}}@keyframes shockLine{0%{opacity:0;transform:rotate(var(--rot)) translateX(-12vmin) scaleX(.1)}22%{opacity:1}100%{opacity:0;transform:rotate(var(--rot)) translateX(-22vmin) scaleX(1.8)}}@keyframes stoneFly{0%{opacity:0;transform:translate(-50%,-50%) rotate(0) scale(.4)}18%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--x)),calc(-50% + var(--y))) rotate(var(--rr)) scale(.2)}}@keyframes boardImpact{0%{transform:translate(0,0)}10%{transform:translate(8px,-5px)}20%{transform:translate(-7px,5px)}30%{transform:translate(5px,4px)}42%{transform:translate(-4px,-3px)}60%,100%{transform:translate(0,0)}}
+.piece svg path,.piece svg circle,.piece svg rect{vector-effect:non-scaling-stroke}.piece:before{content:"";position:absolute;inset:6%;border-radius:50%;background:conic-gradient(from 0deg,transparent,#ffffff18,transparent,#ffffff10,transparent);opacity:.65;mix-blend-mode:screen;pointer-events:none}.piece.white:after{background:radial-gradient(circle,#bfe8ff35,transparent 58%)}.piece.black:after{background:radial-gradient(circle,#c79bff35,transparent 58%)}
+
+/* v0.4：特寫斬擊演出 */
+.cell.cinemaHide .piece{opacity:.05;filter:grayscale(1) blur(1px)}
+.duelPiece{position:fixed;z-index:21;pointer-events:none;transform-origin:center center;filter:drop-shadow(0 14px 10px #000) drop-shadow(0 0 18px var(--aura))}
+.duelPiece .piece{width:100%;height:100%;cursor:default}.duelPiece .piece:hover{transform:none}.duelPiece .piece:before{animation:none}
+.duelAttacker{animation:attackerStrike var(--killDur,2.5s) cubic-bezier(.2,.8,.1,1) forwards}.duelVictim{animation:victimShatter var(--killDur,2.5s) cubic-bezier(.2,.8,.1,1) forwards}
+.focusVignette{position:absolute;inset:0;background:radial-gradient(circle at var(--cx) var(--cy),transparent 0 17vmin,#0008 36vmin,#000d 100%);animation:vignettePulse var(--killDur,2.5s) forwards}
+.duelSlash{position:fixed;z-index:23;left:var(--x);top:var(--y);width:min(44vw,520px);height:16px;border-radius:999px;background:linear-gradient(90deg,transparent,#fff,#ffe59a,#ff3030,#9f6cff,transparent);box-shadow:0 0 22px #fff,0 0 42px #ff4242,0 0 70px #9f6cff;transform:translate(-50%,-50%) rotate(var(--rot));animation:duelSlash var(--killDur,2.5s) forwards;pointer-events:none}.duelSlash:before,.duelSlash:after{content:"";position:absolute;inset:-18px 8%;border-top:2px solid #fff8;border-bottom:2px solid #ff444488;filter:blur(1px)}
+.crackMark{position:fixed;z-index:24;left:var(--x);top:var(--y);width:160px;height:160px;transform:translate(-50%,-50%);opacity:0;animation:crackMark var(--killDur,2.5s) forwards;pointer-events:none}.crackMark:before{content:"";position:absolute;inset:0;background:conic-gradient(from 20deg,transparent 0 6%,#fff 7%,transparent 8% 18%,#ffdf9a 19%,transparent 21% 35%,#fff 36%,transparent 38% 53%,#ff5555 54%,transparent 56% 72%,#fff 73%,transparent 75%);clip-path:polygon(48% 0,54% 35%,100% 48%,57% 55%,70% 100%,48% 63%,0 75%,39% 51%,12% 20%,45% 39%);filter:drop-shadow(0 0 8px #fff) drop-shadow(0 0 14px #ff3838)}
+.killCaption{position:fixed;z-index:25;left:50%;top:12%;transform:translateX(-50%);font-size:min(7vw,84px);font-weight:900;letter-spacing:8px;color:#fff1c0;text-shadow:0 0 18px #fff,0 0 38px #ff3434,0 7px 0 #000;animation:captionBoom var(--killDur,2.5s) forwards;white-space:nowrap}.killCaption.king{color:#ffe27f;text-shadow:0 0 18px #fff,0 0 44px #ffd45a,0 7px 0 #000}
+.crownDrop{position:fixed;z-index:26;left:var(--x);top:var(--y);font-size:72px;filter:drop-shadow(0 0 12px #ffd45a);animation:crownDrop var(--killDur,2.5s) forwards;pointer-events:none}.timeStop{position:fixed;inset:0;z-index:22;background:#fff;opacity:0;animation:timeStop calc(var(--killDur,2.5s) * .72) forwards;pointer-events:none;mix-blend-mode:screen}
+@keyframes attackerStrike{0%{transform:translate(0,0) scale(1);opacity:1}24%{transform:translate(0,-12px) scale(1.62);filter:drop-shadow(0 0 36px var(--aura)) drop-shadow(0 20px 12px #000)}42%{transform:translate(calc(var(--dx)*.58),calc(var(--dy)*.58 - 20px)) scale(1.78) rotate(var(--tilt));opacity:1}52%{transform:translate(calc(var(--dx)*.82),calc(var(--dy)*.82 - 4px)) scale(1.62) rotate(calc(var(--tilt)*-1));filter:drop-shadow(0 0 44px #fff) drop-shadow(0 20px 12px #000)}70%{transform:translate(calc(var(--dx)*.42),calc(var(--dy)*.42 - 12px)) scale(1.42);opacity:.96}100%{transform:translate(0,0) scale(.85);opacity:0}}
+@keyframes victimShatter{0%,46%{transform:scale(1);opacity:1;filter:drop-shadow(0 0 12px var(--aura))}55%{transform:scale(1.08) rotate(-4deg);filter:drop-shadow(0 0 28px #fff)}63%{transform:scale(.96) rotate(7deg);clip-path:polygon(0 0,100% 0,88% 42%,100% 100%,0 100%,16% 50%)}78%{transform:scale(.72) rotate(-13deg) translateY(16px);opacity:.45;clip-path:polygon(18% 0,78% 9%,100% 54%,68% 100%,0 83%,28% 44%)}100%{transform:scale(.08) rotate(32deg) translateY(70px);opacity:0;clip-path:polygon(40% 0,72% 20%,100% 62%,58% 100%,0 58%)}}
+@keyframes duelSlash{0%,44%{opacity:0;transform:translate(-72%,-50%) rotate(var(--rot)) scaleX(.1)}52%{opacity:1;transform:translate(-50%,-50%) rotate(var(--rot)) scaleX(1.08)}72%,100%{opacity:0;transform:translate(-20%,-50%) rotate(var(--rot)) scaleX(1.35)}}
+@keyframes crackMark{0%,55%{opacity:0;transform:translate(-50%,-50%) scale(.25) rotate(0)}66%{opacity:1;transform:translate(-50%,-50%) scale(1.08) rotate(6deg)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.5) rotate(-8deg)}}
+@keyframes vignettePulse{0%{opacity:0}18%{opacity:1}70%{opacity:1}100%{opacity:0}}
+@keyframes captionBoom{0%,42%{opacity:0;transform:translateX(-50%) scale(.7)}55%{opacity:1;transform:translateX(-50%) scale(1.1)}100%{opacity:0;transform:translateX(-50%) translateY(-24px) scale(1.35);filter:blur(5px)}}
+@keyframes crownDrop{0%,45%{opacity:0;transform:translate(-50%,-120px) rotate(0) scale(.7)}60%{opacity:1;transform:translate(-50%,-40px) rotate(-16deg) scale(1.1)}100%{opacity:0;transform:translate(-50%,76px) rotate(34deg) scale(.5)}}
+@keyframes timeStop{0%,48%{opacity:0}53%{opacity:.35}60%,100%{opacity:0}}
+
+/* v0.6：劇場擊殺延長，一般2.5秒／皇后3秒／國王4秒 */
+.theaterStage{position:fixed;z-index:20;left:50%;top:50%;width:min(86vw,980px);height:min(58vh,520px);transform:translate(-50%,-50%);border:2px solid #d8b35aaa;border-radius:28px;background:radial-gradient(circle at 50% 72%,#4b394999 0 16%,#17101fdd 46%,#040308f2 100%),linear-gradient(180deg,#ffffff10,#0000 45%,#0008);box-shadow:0 0 80px #000, inset 0 0 28px #fff2;overflow:hidden;animation:stageIn var(--killDur,2.5s) forwards}
+.theaterStage:before{content:"";position:absolute;left:8%;right:8%;bottom:13%;height:7px;border-radius:999px;background:linear-gradient(90deg,transparent,#d8b35a,#fff4c8,#d8b35a,transparent);box-shadow:0 0 20px #d8b35a}
+.theaterStage:after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 0 42%,#ffffff18 47%,transparent 53% 100%),radial-gradient(circle at 30% 30%,#7fc7ff22,transparent 25%),radial-gradient(circle at 70% 30%,#b06cff22,transparent 25%);animation:stageAura var(--killDur,2.5s) forwards}
+.theaterActor{position:absolute;z-index:22;bottom:14%;width:230px;height:310px;filter:drop-shadow(0 18px 12px #000) drop-shadow(0 0 18px var(--aura));transform-origin:50% 90%;}
+.theaterActor svg{width:100%;height:100%;overflow:visible}.theaterActor.white{--body:#ded8c7;--edge:#fff;--aura:#7fc7ff;--dark:#807b8c}.theaterActor.black{--body:#3a3542;--edge:#b79aff;--aura:#b06cff;--dark:#17131e}.theaterActor .body{fill:var(--body);stroke:var(--edge);stroke-width:4;paint-order:stroke fill}.theaterActor .aura{fill:var(--aura);stroke:var(--edge);stroke-width:2;filter:drop-shadow(0 0 8px var(--aura))}.theaterActor .line{stroke:var(--aura);stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round}.theaterActor .shade{fill:var(--dark);opacity:.9}
+.theaterAttacker{left:13%;animation:theaterAttack var(--killDur,2.5s) cubic-bezier(.18,.82,.1,1) forwards}.theaterVictim{right:13%;animation:theaterDeath var(--killDur,2.5s) cubic-bezier(.18,.82,.1,1) forwards}.theaterActor.dirLeft{transform:scaleX(-1)}
+.theaterTitle{position:fixed;z-index:26;left:50%;top:13%;transform:translateX(-50%);font-size:min(5.5vw,58px);font-weight:900;letter-spacing:5px;color:#fff0bd;text-shadow:0 0 18px #fff,0 0 36px #d8b35a,0 6px 0 #000;white-space:nowrap;animation:theaterTitle var(--killDur,2.5s) forwards}.deathLabel{position:absolute;z-index:24;left:50%;bottom:8%;transform:translateX(-50%);font-size:22px;color:#ddd0ff;text-shadow:0 0 12px #000;animation:deathLabel var(--killDur,2.5s) forwards}
+.theaterSlash{position:fixed;z-index:27;left:50%;top:50%;width:min(52vw,620px);height:20px;border-radius:999px;background:linear-gradient(90deg,transparent,#fff,#ffe49c,#ff3030,#b06cff,transparent);box-shadow:0 0 26px #fff,0 0 56px #ff3030,0 0 90px #b06cff;transform:translate(-50%,-50%) rotate(-18deg);animation:theaterSlash var(--killDur,2.5s) forwards}.theaterSlash:before{content:"";position:absolute;inset:-28px 10%;border-top:3px solid #fff8;border-bottom:3px solid #ff444488;filter:blur(1px)}
+.fallDust{position:fixed;z-index:21;left:50%;top:66%;width:42vw;height:70px;transform:translateX(-50%);background:radial-gradient(ellipse,#b8a78355,transparent 68%);filter:blur(8px);opacity:0;animation:dustBoom var(--killDur,2.5s) forwards}
+@keyframes stageIn{0%{opacity:0;transform:translate(-50%,-48%) scale(.82)}12%,82%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-52%) scale(1.04)}}
+@keyframes stageAura{0%,100%{opacity:.2}20%,70%{opacity:1}}
+@keyframes theaterAttack{0%{transform:translateX(-40px) scale(.86);opacity:0}16%{transform:translateX(0) scale(1.24);opacity:1}34%{transform:translateX(80px) translateY(-18px) scale(1.42) rotate(4deg)}50%{transform:translateX(255px) translateY(-6px) scale(1.58) rotate(-8deg);filter:drop-shadow(0 0 42px #fff) drop-shadow(0 24px 12px #000)}68%{transform:translateX(160px) scale(1.24);opacity:1}100%{transform:translateX(20px) scale(.76);opacity:0}}
+@keyframes theaterDeath{0%,44%{transform:translateX(0) scale(1.18);opacity:1;clip-path:none}54%{transform:translateX(24px) scale(1.22) rotate(-7deg);filter:drop-shadow(0 0 36px #fff)}66%{transform:translateX(34px) scale(1.03) rotate(10deg);clip-path:polygon(0 0,100% 0,88% 38%,100% 100%,0 100%,18% 50%)}82%{transform:translateX(52px) translateY(28px) scale(.72) rotate(-18deg);opacity:.5;clip-path:polygon(16% 0,78% 8%,100% 52%,66% 100%,0 82%,28% 42%)}100%{transform:translateX(80px) translateY(94px) scale(.08) rotate(32deg);opacity:0;clip-path:polygon(40% 0,72% 20%,100% 62%,58% 100%,0 58%)}}
+@keyframes theaterSlash{0%,43%{opacity:0;transform:translate(-84%,-50%) rotate(-18deg) scaleX(.1)}52%{opacity:1;transform:translate(-50%,-50%) rotate(-18deg) scaleX(1.06)}76%,100%{opacity:0;transform:translate(-18%,-50%) rotate(-18deg) scaleX(1.35)}}
+@keyframes theaterTitle{0%,35%{opacity:0;transform:translateX(-50%) scale(.72)}50%{opacity:1;transform:translateX(-50%) scale(1.08)}100%{opacity:0;transform:translateX(-50%) translateY(-24px) scale(1.24);filter:blur(4px)}}
+@keyframes deathLabel{0%,28%{opacity:0;transform:translateX(-50%) translateY(15px)}44%,72%{opacity:1;transform:translateX(-50%) translateY(0)}100%{opacity:0;transform:translateX(-50%) translateY(-20px)}}
+@keyframes dustBoom{0%,55%{opacity:0;transform:translateX(-50%) scale(.4)}70%{opacity:.8;transform:translateX(-50%) scale(1)}100%{opacity:0;transform:translateX(-50%) scale(1.6)}}
+
+.moveMeter{margin-top:10px;padding:10px;border-radius:10px;background:#090712;border:1px solid #ffffff1f;box-shadow:inset 0 0 14px #0008}
+.moveMeter .label{font-size:13px;color:#cfc7dc}.moveMeter .num{font-size:30px;font-weight:900;color:#8ff0ff;text-shadow:0 0 10px #65dfff}.moveMeter.safe{border-color:#65dfff66}.moveMeter.warn{border-color:#ffde6b99;box-shadow:0 0 14px #ffde6b33,inset 0 0 14px #0008}.moveMeter.warn .num{color:#ffde6b;text-shadow:0 0 12px #ffde6b}.moveMeter.danger{border-color:#ff934dcc;box-shadow:0 0 18px #ff934d55,inset 0 0 14px #0008}.moveMeter.danger .num{color:#ff934d;text-shadow:0 0 12px #ff934d}.moveMeter.critical{border-color:#ff4747;animation:dangerPulse .8s infinite;box-shadow:0 0 22px #ff333366,inset 0 0 16px #0008}.moveMeter.critical .num{color:#ff4747;text-shadow:0 0 14px #ff4747}@keyframes dangerPulse{50%{transform:scale(1.015);filter:brightness(1.35)}}
+.ruleNote{margin-top:8px;padding:8px;border-radius:8px;background:#0005;color:#f7e3a0;font-size:13px;border:1px solid #d8b35a44}.ruleNote.danger{color:#ffb0a8;border-color:#ff555577}.ruleNote.check{color:#ffdddd;border-color:#ff333388}
+.endBanner{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:radial-gradient(circle,#1d1639bb,#000d 72%);z-index:30;pointer-events:none}.endBanner.show{display:flex;animation:endFade .7s both;pointer-events:auto}.endBox{min-width:min(88vw,620px);padding:28px;border-radius:22px;text-align:center;background:linear-gradient(145deg,#261b36,#080610);border:2px solid #d8b35a;box-shadow:0 0 50px #7fc7ff55,0 20px 80px #000}.endTitle{font-size:54px;font-weight:900;letter-spacing:4px;color:#f7e3a0;text-shadow:0 0 18px #d8b35a,0 4px 0 #000}.endSub{font-size:24px;margin-top:8px;color:#fff}.endReason{font-size:16px;margin-top:12px;line-height:1.7;color:#d8d2e6}.endActions{display:flex;gap:12px;justify-content:center;margin-top:18px}.endActions button{background:linear-gradient(#3d3153,#191426);color:#fff;border:1px solid #d8b35a88;border-radius:10px;padding:10px 18px;font-size:15px;cursor:pointer}.endActions button:hover{box-shadow:0 0 14px #d8b35a55}@keyframes endFade{0%{opacity:0}100%{opacity:1}}
+
+@media(max-width:720px){.theaterActor{width:155px;height:230px}.theaterAttacker{left:7%}.theaterVictim{right:7%}.theaterTitle{font-size:34px}.deathLabel{font-size:16px}}
+
+@media(max-width:1180px){.wrap{flex-direction:column;align-items:center}.side{width:min(96vw,900px);min-height:auto}.board{width:min(96vw,900px);height:min(96vw,900px)}}
+
+.devUnlock{position:absolute;right:18px;top:16px;z-index:3;background:linear-gradient(#3d3153,#191426);color:#ffe8a8;border:1px solid #d8b35a88;border-radius:999px;padding:8px 13px;font-size:14px;cursor:pointer;box-shadow:0 0 14px #0008}
+.devUnlock.unlocked{color:#8ff0ff;border-color:#7fc7ffaa;box-shadow:0 0 16px #7fc7ff55}
+.devOnly{display:none}
+body.devMode .devOnly{display:block}
+</style>
+</head>
+<body>
+<div id="killOverlay" class="killOverlay"></div>
+<div id="endBanner" class="endBanner"><div class="endBox"><div class="endTitle" id="endTitle"></div><div class="endSub" id="endSub"></div><div class="endReason" id="endReason"></div><div class="endActions"><button id="endRestartBtn">重新開始</button><button id="endCloseBtn">取消</button></div></div></div>
+<div class="header"><button id="devUnlockBtn" class="devUnlock" title="輸入密碼解鎖四格高速訓練">🔒 開發者</button><div class="title">WIZARD CHESS</div><div class="subtitle">v3.1 </div></div>
+<div class="wrap">
+  <div class="game"><div class="toast" id="toast">CHECK!</div><div class="boardFrame"><div id="board" class="board"></div></div></div>
+  <aside class="side">
+    <h2>魔法棋局</h2>
+    <div class="status" id="status"></div>
+    <div class="controls">
+      <label>1P 白方</label>
+      <select id="whiteMode">
+        <option value="human">玩家</option>
+        <option value="easy">AI 簡單</option>
+        <option value="normal">AI 普通</option>
+        <option value="hard">AI 困難</option>
+        <option value="aggressive">AI 進攻流</option>
+        <option value="defensive">AI 防守流</option>
+        <option value="auto">大師級 AI</option>
+      </select>
+      <label>2P 黑方</label>
+      <select id="blackMode">
+        <option value="human">玩家</option>
+        <option value="easy">AI 簡單</option>
+        <option value="normal" selected>AI 普通</option>
+        <option value="hard">AI 困難</option>
+        <option value="aggressive">AI 進攻流</option>
+        <option value="defensive">AI 防守流</option>
+        <option value="auto">大師級 AI</option>
+      </select>
+      <button id="newBtn">重新開局</button>
+      <button id="undoBtn">悔棋一步</button>
+      <button id="exportDBBtn">匯出經驗庫</button>
+      <button id="importDBBtn">匯入經驗庫</button>
+      <button id="exportRecordBtn">匯出棋譜</button>
+      <button id="trainBtn">開始AI訓練</button>
+      <button id="trainFastBtn" class="devOnly">四格高速訓練</button>
+      <button id="stopTrainBtn">停止訓練</button>
+      <select id="trainCount"><option value="100">訓練100局</option><option value="500">訓練500局</option><option value="1000">訓練1000局</option><option value="0">無限訓練</option></select>
+      <div id="parallelTrainPanel" class="ruleNote" style="line-height:1.6">四局訓練：未啟動</div>
+      <input id="importDBFile" type="file" accept="application/json,.json" style="display:none">
+    </div>
+    <div class="grave"><div class="graveTitle">AI 分布說明</div><div style="font-size:13px;line-height:1.65;color:#d8d2e6"><b style="color:#f7e3a0">v3.0 </b><br><br><b style="color:#f7e3a0">進攻流</b>：重視攻王、將軍、活動力與主動進攻，但仍會避免無意義犧牲。<br><b style="color:#f7e3a0">防守流</b>：重視王安全、保護棋子、換子簡化與殘局穩定。<br><b style="color:#f7e3a0">大師級 AI</b>：使用共用 AI經驗庫，加入王安全、攻防地圖、有效進攻、反無意義犧牲、反重複將軍與逼殺網權重。<br><br><b style="color:#f7e3a0">AI經驗庫</b>：存在瀏覽器 localStorage，可匯出成 JSON，也可重新匯入遊戲。</div></div>
+    <div class="grave"><div class="graveTitle">被白方擊碎</div><div class="taken" id="blackTaken"></div></div>
+    <div class="grave"><div class="graveTitle">被黑方擊碎</div><div class="taken" id="whiteTaken"></div></div>
+    <div class="log" id="log"></div>
+  </aside>
+</div>
+<div class="modal" id="promoModal"><div class="modalBox"><h2>升變：召喚新的棋魂</h2><div class="promoChoices" id="promoChoices"></div></div></div>
+<script>
+const boardEl=document.getElementById('board'), statusEl=document.getElementById('status'), logEl=document.getElementById('log'), killOverlay=document.getElementById('killOverlay');
+const blackTakenEl=document.getElementById('blackTaken'), whiteTakenEl=document.getElementById('whiteTaken'), toast=document.getElementById('toast');
+const endBanner=document.getElementById('endBanner'), endTitle=document.getElementById('endTitle'), endSub=document.getElementById('endSub'), endReason=document.getElementById('endReason'), endRestartBtn=document.getElementById('endRestartBtn'), endCloseBtn=document.getElementById('endCloseBtn');
+const promoModal=document.getElementById('promoModal'), promoChoices=document.getElementById('promoChoices');
+const files='abcdefgh', values={p:100,n:320,b:330,r:500,q:900,k:20000};
+const ELITE_LIMITS={opening:100,middlegame:100,endgame:100};
+const ELITE_LABELS={opening:'開局',middlegame:'中盤',endgame:'殘局'};
+let B, turn='w', selected=null, legal=[], sideMode={w:'human',b:'normal'}, gameOver=false, history=[], moveTrace=[], gameMoves=[], taken={w:[],b:[]}, lastMove=null, pendingPromotion=null, animating=false, aiThinking=false;
+let halfmoveClock=0;
+let winningEndgameClock=0; // v2.9：理論必勝殘局收官計時，超過10手開始催促收王
+let learnTrace={w:[],b:[]};
+let learnDB=loadLearnDB();
+let trainingMode=false, trainingTarget=0, trainingDone=0, trainingOldModes=null;
+let trainingExploreBias=1.0; // v2.8：訓練探索倍率；主局偏保守，隱藏局逐級提高探索
+let developerMode=false; // 輸入密碼 6028 後解鎖四格高速訓練
+let castling={w:{K:true,Q:true},b:{K:true,Q:true}}, enPassant=null;
+function init(){syncModes(); if(endBanner)endBanner.classList.remove('show');B=[['br','bn','bb','bq','bk','bb','bn','br'],['bp','bp','bp','bp','bp','bp','bp','bp'],[null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null],['wp','wp','wp','wp','wp','wp','wp','wp'],['wr','wn','wb','wq','wk','wb','wn','wr']]; turn='w'; selected=null; legal=[]; gameOver=false; animating=false; history=[]; moveTrace=[]; gameMoves=[]; taken={w:[],b:[]}; lastMove=null; learnTrace={w:[],b:[]}; castling={w:{K:true,Q:true},b:{K:true,Q:true}}; enPassant=null; halfmoveClock=0; winningEndgameClock=0; logEl.innerHTML=''; render(); scheduleAI();}
+function icon(piece,mini=false){if(!piece)return'';let c=piece[0],t=piece[1], cls=c==='w'?'white':'black';let s={p:pawn,n:knight,b:bishop,r:rook,q:queen,k:king}[t]();return `<div class="piece ${cls} ${mini?'miniPiece':''}" data-p="${piece}">${s}</div>`}
+function base(body){return `<svg viewBox="0 0 100 100"><defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="var(--edge)"/><stop offset="1" stop-color="var(--main)"/></linearGradient></defs><ellipse cx="50" cy="86" rx="36" ry="9" fill="#0008"/><circle cx="50" cy="52" r="38" fill="none" stroke="var(--aura)" stroke-width="2" opacity=".28" stroke-dasharray="5 7"/>${body}<path d="M25 73 H75" stroke="var(--aura)" stroke-width="3" opacity=".55"/><ellipse class="fill" cx="50" cy="84" rx="34" ry="9"/><rect class="fill" x="28" y="65" width="44" height="16" rx="5"/><path d="M35 70 h30 M38 76 h24" stroke="var(--aura)" stroke-width="2" opacity=".5"/></svg>`}
+function pawn(){return base(`<circle class="fill" cx="50" cy="31" r="15"/><path class="fill" d="M36 66 L43 44 H57 L64 66 Z"/><path d="M41 52 h18 M39 59 h22" stroke="var(--aura)" stroke-width="2" opacity=".65"/><circle class="gem" cx="50" cy="29" r="4"/><path d="M44 24 L50 17 L56 24" stroke="var(--aura)" stroke-width="3" fill="none"/>`) }
+function rook(){return base(`<path class="fill" d="M25 22 h11 v10 h8 V22 h12 v10 h8 V22 h11 v24 H25 Z"/><path class="fill" d="M32 46 h36 l-5 20 H37 Z"/><path d="M35 50 h30 M38 57 h24" stroke="var(--aura)" stroke-width="2" opacity=".6"/><rect class="gem" x="45" y="30" width="10" height="9" rx="2"/><path d="M28 42 h44" stroke="#0008" stroke-width="2"/>`) }
+function knight(){return base(`<path class="fill" d="M34 66 C31 50 39 42 48 35 C42 30 43 23 49 18 C61 23 72 38 68 54 C66 63 58 66 58 66 Z"/><path class="fill" d="M43 32 L27 43 L39 47"/><path d="M46 25 C55 29 61 37 62 48" stroke="var(--aura)" stroke-width="3" fill="none" opacity=".65"/><circle class="gem" cx="56" cy="36" r="3"/><path d="M36 45 l10 4" stroke="#0008" stroke-width="3"/>`) }
+function bishop(){return base(`<path class="fill" d="M50 16 C72 33 66 55 56 65 H44 C34 55 28 33 50 16 Z"/><path d="M58 28 L42 52" stroke="var(--aura)" stroke-width="5" stroke-linecap="round"/><path d="M39 58 h22" stroke="var(--aura)" stroke-width="2" opacity=".55"/><circle class="gem" cx="50" cy="22" r="4"/><path d="M45 17 L50 9 L55 17" stroke="var(--aura)" stroke-width="3" fill="none"/>`) }
+function queen(){return base(`<path class="fill" d="M22 31 L36 58 L50 21 L64 58 L78 31 L68 66 H32 Z"/><path d="M33 58 h34 M37 50 h26" stroke="var(--aura)" stroke-width="2" opacity=".55"/><circle class="gem" cx="22" cy="31" r="5"/><circle class="gem" cx="50" cy="21" r="5"/><circle class="gem" cx="78" cy="31" r="5"/><path d="M43 32 C48 38 52 38 57 32" stroke="#fff8" stroke-width="2" fill="none"/>`) }
+function king(){return base(`<path class="fill" d="M46 16 h8 v12 h13 v9 H54 v19 H46 V37 H33 v-9 h13 Z"/><path class="fill" d="M33 56 h34 l-5 10 H38 Z"/><path d="M38 60 h24" stroke="var(--aura)" stroke-width="2" opacity=".6"/><circle class="gem" cx="50" cy="16" r="4"/><path d="M30 49 C39 43 61 43 70 49" stroke="var(--aura)" stroke-width="2" fill="none" opacity=".45"/>`) }
+function render(){
+  if(!boardEl)return;
+  boardEl.innerHTML='';
+  const checkedNow=inCheck(turn);
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){let cell=document.createElement('div');cell.className='cell '+((r+c)%2?'dark':'light'); if(([0,7].includes(r)&&[0,7].includes(c))||r===3&&c===3||r===4&&c===4) cell.classList.add('rune'); if(lastMove&&((lastMove.fr===r&&lastMove.fc===c)||(lastMove.tr===r&&lastMove.tc===c)))cell.classList.add('lastMove'); let l=legal.find(m=>m.tr===r&&m.tc===c); if(l)cell.classList.add(B[r][c]?'captureHint':'hint'); if(checkedNow&&B[r][c]===turn+'k')cell.classList.add('check'); cell.dataset.r=r;cell.dataset.c=c; cell.innerHTML=`<span class="coord">${r===7?files[c]:''}${c===0?8-r:''}</span>`+icon(B[r][c]); if(selected&&selected.r===r&&selected.c===c) setTimeout(()=>{let p=cell.querySelector('.piece'); if(p)p.classList.add('selected')}); cell.onclick=()=>clickCell(r,c); boardEl.appendChild(cell);}
+  renderTaken(); updateStatus();
+}
+function renderTaken(){blackTakenEl.innerHTML=taken.b.map(p=>icon(p,true)).join(''); whiteTakenEl.innerHTML=taken.w.map(p=>icon(p,true)).join('')}
+function updateStatus(){
+ let side=turn==='w'?'白方銀光軍團':'黑方暗鐵軍團', checked=inCheck(turn), moves=allMoves(turn);
+ let ck=checked?'｜將軍！':'';
+ let cls=moves.length<=1?'critical':moves.length===2?'danger':moves.length<=4?'warn':'safe';
+ let note='全陣營合法步數，不是只看國王能不能走。';
+ if(moves.length===0) note=checked?'沒有合法步且正在被將軍：將死。':'沒有合法步但未被將軍：強制逼和。';
+ else if(moves.length===1&&!checked) note='⚠ 逼和風險：只剩 1 步合法棋，別把敵王困死卻沒將軍。';
+ else if(moves.length<=4&&!checked) note='逼和預警：對方活動空間很小，收王時要記得將軍。';
+ else if(checked) note='對方正在被將軍，若合法步歸零就是將死。';
+ const modeName={human:'玩家',random:'AI 亂走',easy:'AI 簡單',greedy:'AI 貪吃',tactical:'AI 戰術交換',aggressive:'AI 進攻流',defensive:'AI 防守流',normal:'AI 普通',positional:'AI 位置流',endgame:'AI 殘局流',hard:'AI 困難',auto:'大師級 AI'};
+ const publicMemoryLine='AI狀態：已載入';
+ const devMemoryLine=`AI經驗庫：${learnDB.games||0} 局｜開局精華 ${eliteCount('opening')}/100｜中盤精華 ${eliteCount('middlegame')}/100｜殘局精華 ${eliteCount('endgame')}/100｜局面 ${Object.keys(learnDB.moves||{}).length}<br>和棋統計：逼和 ${(learnDB.drawStats&&learnDB.drawStats.stalemate)||0}｜重複 ${(learnDB.drawStats&&learnDB.drawStats.repetition)||0}｜無進展 ${((learnDB.drawStats&&learnDB.drawStats.fifty)||0)+((learnDB.drawStats&&learnDB.drawStats.training30)||0)}`;
+ const publicTrainingLine=trainingMode?'AI訓練：進行中':'AI訓練：未啟動';
+ const devTrainingLine=trainingMode?'AI訓練中：'+trainingDone+(trainingTarget?' / '+trainingTarget:' / ∞')+' 局｜探索權重提高':'AI訓練：未啟動';
+ const publicEndgameLine=winningEndgameClock?'收官狀態：進行中':'收官狀態：未啟動';
+ const devEndgameLine=`無進展步數：${halfmoveClock} / ${trainingMode?30:50}<br>必勝殘局收官：${winningEndgameClock?winningEndgameClock+' 手':'未啟動'}`;
+ statusEl.innerHTML=`目前回合：<b>${side}</b>${ck}<br>1P 白方：${modeName[sideMode.w]}<br>2P 黑方：${modeName[sideMode.b]}<br>目前操作者：${modeName[sideMode[turn]]}<br>${gameOver?'棋局結束':sideMode[turn]==='human'?'點選棋子後會顯示合法步':'AI 正在思考'}<br>${developerMode?devMemoryLine:publicMemoryLine}<br>${developerMode?devTrainingLine:publicTrainingLine}<br>${developerMode?devEndgameLine:publicEndgameLine}<div class="moveMeter ${cls}"><div class="label">${side}合法步數</div><div class="num">${moves.length}</div></div><div class="ruleNote ${checked?'check':(moves.length<=1?'danger':'')}">${note}</div>`
+}
+function clickCell(r,c){if(animating||gameOver||sideMode[turn]!=='human')return;let p=B[r][c]; if(selected){let m=legal.find(x=>x.tr===r&&x.tc===c); if(m){move(m,true);return}} if(p&&p[0]===turn){selected={r,c};legal=legalMoves(r,c,true);render();}}
+function inside(r,c){return r>=0&&r<8&&c>=0&&c<8} function enemy(p,c){return p&&p[0]!==c}
+function pseudo(r,c){let p=B[r][c];if(!p)return[];let color=p[0],t=p[1],dir=color==='w'?-1:1,m=[];let add=(tr,tc)=>{if(inside(tr,tc)&&(!B[tr][tc]||enemy(B[tr][tc],color)))m.push({fr:r,fc:c,tr,tc})}; if(t==='p'){if(inside(r+dir,c)&&!B[r+dir][c]){m.push({fr:r,fc:c,tr:r+dir,tc:c}); if((color==='w'&&r===6||color==='b'&&r===1)&&!B[r+2*dir][c])m.push({fr:r,fc:c,tr:r+2*dir,tc:c})} for(let dc of[-1,1]){let tr=r+dir,tc=c+dc;if(inside(tr,tc)&&enemy(B[tr][tc],color))m.push({fr:r,fc:c,tr,tc}); if(enPassant&&enPassant.r===tr&&enPassant.c===tc)m.push({fr:r,fc:c,tr,tc,enPassant:true,capr:r,capc:tc});}}
+ if(t==='n')for(let [dr,dc] of [[1,2],[2,1],[-1,2],[-2,1],[1,-2],[2,-1],[-1,-2],[-2,-1]])add(r+dr,c+dc);
+ if('brq'.includes(t)){let dirs=[]; if('bq'.includes(t))dirs.push([1,1],[1,-1],[-1,1],[-1,-1]); if('rq'.includes(t))dirs.push([1,0],[-1,0],[0,1],[0,-1]); for(let [dr,dc] of dirs){let tr=r+dr,tc=c+dc;while(inside(tr,tc)){if(!B[tr][tc])m.push({fr:r,fc:c,tr,tc});else{if(enemy(B[tr][tc],color))m.push({fr:r,fc:c,tr,tc});break}tr+=dr;tc+=dc}}}
+ if(t==='k')for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++)if(dr||dc)add(r+dr,c+dc); return m;}
+function legalMoves(r,c,safe){let arr=pseudo(r,c); let p=B[r][c]; if(p&&p[1]==='k')arr.push(...castleMoves(p[0],r,c)); if(!safe)return arr; return arr.filter(m=>{let snap=clone(B);apply(m,false);let ok=!inCheck(snap[m.fr][m.fc][0]);B=snap;return ok})}
+function castleMoves(color,r,c){let row=color==='w'?7:0, opp=color==='w'?'b':'w', out=[]; if(r!==row||c!==4||B[row][4]!==color+'k'||inCheck(color))return out; if(castling[color].K&&B[row][7]===color+'r'&&!B[row][5]&&!B[row][6]&&!isSquareAttacked(row,5,opp)&&!isSquareAttacked(row,6,opp))out.push({fr:row,fc:4,tr:row,tc:6,castle:'K'}); if(castling[color].Q&&B[row][0]===color+'r'&&!B[row][1]&&!B[row][2]&&!B[row][3]&&!isSquareAttacked(row,3,opp)&&!isSquareAttacked(row,2,opp))out.push({fr:row,fc:4,tr:row,tc:2,castle:'Q'}); return out}
+function isSquareAttacked(r,c,byColor){for(let rr=0;rr<8;rr++)for(let cc=0;cc<8;cc++)if(B[rr][cc]&&B[rr][cc][0]===byColor){let piece=B[rr][cc]; if(piece[1]==='p'){let d=byColor==='w'?-1:1; if(rr+d===r&&Math.abs(cc-c)===1)return true;} else {for(let m of pseudo(rr,cc))if(m.tr===r&&m.tc===c)return true;}} return false}
+function allMoves(color){let a=[];for(let r=0;r<8;r++)for(let c=0;c<8;c++)if(B[r][c]&&B[r][c][0]===color)a.push(...legalMoves(r,c,true));return a}
+function clone(x){return x.map(row=>row.slice())}
+function cloneCastling(){return {w:{K:castling.w.K,Q:castling.w.Q},b:{K:castling.b.K,Q:castling.b.Q}}}
+function apply(m,promo){let p=B[m.fr][m.fc]; if(m.enPassant)B[m.capr][m.capc]=null; B[m.tr][m.tc]=p; B[m.fr][m.fc]=null; if(m.castle==='K'){B[m.tr][5]=B[m.tr][7];B[m.tr][7]=null;} if(m.castle==='Q'){B[m.tr][3]=B[m.tr][0];B[m.tr][0]=null;} if(p[1]==='p'&&(m.tr===0||m.tr===7)&&promo)B[m.tr][m.tc]=p[0]+promo;}
+function move(m,human=false,promo='q'){
+ let p=B[m.fr][m.fc], cap=m.enPassant?B[m.capr][m.capc]:B[m.tr][m.tc];
+ if(human&&p[1]==='p'&&(m.tr===0||m.tr===7)){pendingPromotion=m; showPromotion(p[0]);return}
+ commitMove(m,promo,cap);
+}
+
+function theaterActor(piece, cls){
+  const color=piece[0]==='w'?'white':'black', t=piece[1];
+  const names={p:'石兵',n:'墜馬騎士',b:'神父主教',r:'崩裂城堡',q:'魔女皇后',k:'王冠崩毀'};
+  const body={
+    p:`<ellipse class="shade" cx="100" cy="286" rx="66" ry="14"/><circle class="body" cx="100" cy="74" r="32"/><path class="body" d="M66 244 L78 118 H122 L136 244 Z"/><path class="line" d="M75 146 H126 M72 185 H130 M83 86 L100 42 L117 86"/><circle class="aura" cx="100" cy="70" r="8"/>`,
+    n:`<ellipse class="shade" cx="105" cy="286" rx="78" ry="15"/><path class="body" d="M46 242 C35 196 50 148 91 118 C78 96 82 66 106 42 C154 62 184 112 174 174 C166 220 130 242 130 242 Z"/><path class="body" d="M80 126 L36 158 L72 170"/><path class="line" d="M100 78 C132 92 150 124 150 162 M63 186 L128 210 M45 244 C80 220 130 220 166 244"/><circle class="aura" cx="134" cy="112" r="8"/>`,
+    b:`<ellipse class="shade" cx="100" cy="286" rx="76" ry="15"/><path class="body" d="M100 30 C166 84 150 170 126 236 H74 C50 170 34 84 100 30 Z"/><path class="line" d="M126 74 L74 170 M66 218 H134 M100 28 V10 M86 22 H114"/><circle class="aura" cx="100" cy="48" r="8"/><path class="body" d="M50 238 H150 L136 264 H64 Z"/>`,
+    r:`<ellipse class="shade" cx="100" cy="286" rx="82" ry="15"/><path class="body" d="M42 62 H64 V36 H82 V62 H118 V36 H136 V62 H158 V154 H42 Z"/><path class="body" d="M58 154 H142 L132 252 H68 Z"/><path class="line" d="M60 126 H140 M72 182 H128 M82 62 V252 M118 62 V252"/><rect class="aura" x="86" y="88" width="28" height="22" rx="4"/>`,
+    q:`<ellipse class="shade" cx="100" cy="286" rx="78" ry="15"/><path class="body" d="M36 96 L66 214 L100 54 L134 214 L164 96 L144 252 H56 Z"/><path class="line" d="M62 218 H138 M74 176 H126 M100 54 V18"/><circle class="aura" cx="36" cy="96" r="11"/><circle class="aura" cx="100" cy="54" r="12"/><circle class="aura" cx="164" cy="96" r="11"/><path class="body" d="M72 252 H128 L140 270 H60 Z"/>`,
+    k:`<ellipse class="shade" cx="100" cy="286" rx="78" ry="15"/><path class="body" d="M88 36 H112 V72 H148 V96 H112 V174 H88 V96 H52 V72 H88 Z"/><path class="body" d="M58 174 H142 L128 250 H72 Z"/><path class="line" d="M70 196 H130 M76 226 H124 M62 154 C86 134 114 134 138 154"/><circle class="aura" cx="100" cy="31" r="9"/><path class="body" d="M72 250 H128 L142 270 H58 Z"/>`
+  }[t];
+  return `<div class="theaterActor ${color} ${cls}" title="${names[t]}"><svg viewBox="0 0 200 300">${body}</svg></div>`;
+}
+function theaterCaption(victim){return ({p:'石兵碎裂',n:'騎士墜馬',b:'神父法袍裂解',r:'城堡崩塌',q:'皇后魔力爆散',k:'國王崩毀'})[victim[1]]||'SHATTER'}
+
+function killDuration(victim){return victim&&victim[1]==='k'?4000:victim&&victim[1]==='q'?3000:2500}
+function bigKillFX(attacker,victim,m){
+  if(!killOverlay)return;
+  const dur=killDuration(victim), durS=(dur/1000)+'s';
+  killOverlay.style.setProperty('--killDur',durS);
+  killOverlay.innerHTML='';
+  const fromCell=boardEl.querySelector(`[data-r="${m.fr}"][data-c="${m.fc}"]`);
+  const toCell=boardEl.querySelector(`[data-r="${m.tr}"][data-c="${m.tc}"]`);
+  const fromPiece=fromCell&&fromCell.querySelector('.piece');
+  const toPiece=toCell&&toCell.querySelector('.piece');
+  const fr=fromCell?fromCell.getBoundingClientRect():{left:innerWidth/2,top:innerHeight/2,width:90,height:90};
+  const tr=toCell?toCell.getBoundingClientRect():fr;
+  if(fromCell)fromCell.classList.add('cinemaHide');
+  if(toCell)toCell.classList.add('cinemaHide');
+  const cx=(tr.left+tr.width/2), cy=(tr.top+tr.height/2);
+  const focus=document.createElement('div');focus.className='focusVignette';focus.style.setProperty('--cx',cx+'px');focus.style.setProperty('--cy',cy+'px');killOverlay.appendChild(focus);
+  const ts=document.createElement('div');ts.className='timeStop';killOverlay.appendChild(ts);
+  const stage=document.createElement('div');stage.className='theaterStage';
+  const title=document.createElement('div');title.className='theaterTitle';title.textContent=victim[1]==='k'?'KING FALLS':victim[1]==='q'?'QUEEN EXECUTION':'WIZARD DUEL';
+  const label=document.createElement('div');label.className='deathLabel';label.textContent=theaterCaption(victim);
+  stage.innerHTML=theaterActor(attacker,'theaterAttacker')+theaterActor(victim,'theaterVictim')+label.outerHTML;
+  killOverlay.appendChild(stage);killOverlay.appendChild(title);
+  const dust=document.createElement('div');dust.className='fallDust';killOverlay.appendChild(dust);
+  for(let i=0;i<12;i++){let line=document.createElement('div');line.className='shockLine';line.style.left=cx+'px';line.style.top=cy+'px';line.style.setProperty('--rot',(i*15+Math.random()*8)+'deg');killOverlay.appendChild(line)}
+  const slash=document.createElement('div');slash.className='duelSlash';slash.style.setProperty('--x',cx+'px');slash.style.setProperty('--y',cy+'px');slash.style.setProperty('--rot',(m.tc>=m.fc?'-28deg':'28deg'));killOverlay.appendChild(slash);
+  const theaterSlash=document.createElement('div');theaterSlash.className='theaterSlash';killOverlay.appendChild(theaterSlash);
+  const crack=document.createElement('div');crack.className='crackMark';crack.style.setProperty('--x',cx+'px');crack.style.setProperty('--y',cy+'px');killOverlay.appendChild(crack);
+  const caption=document.createElement('div');caption.className='killCaption'+(victim[1]==='k'?' king':'');caption.textContent=victim[1]==='k'?'CHECKMATE':theaterCaption(victim);killOverlay.appendChild(caption);
+  if(victim[1]==='k'){const crown=document.createElement('div');crown.className='crownDrop';crown.textContent='♛';crown.style.setProperty('--x',cx+'px');crown.style.setProperty('--y',cy+'px');killOverlay.appendChild(crown)}
+  const shardCount=victim[1]==='p'?24:victim[1]==='k'?58:38;
+  for(let i=0;i<shardCount;i++){let shard=document.createElement('div');shard.className='stoneShard';let a=Math.random()*Math.PI*2,d=70+Math.random()*(victim[1]==='k'?560:390);shard.style.left=cx+'px';shard.style.top=cy+'px';shard.style.setProperty('--x',Math.cos(a)*d+'px');shard.style.setProperty('--y',Math.sin(a)*d+'px');shard.style.setProperty('--rr',(Math.random()*900-450)+'deg');shard.style.animationDelay=((dur/1000)*(0.56+Math.random()*0.12))+'s';shard.style.width=(9+Math.random()*24)+'px';shard.style.height=(9+Math.random()*26)+'px';killOverlay.appendChild(shard)}
+  killOverlay.classList.remove('show');void killOverlay.offsetWidth;killOverlay.classList.add('show');
+  const frame=document.querySelector('.boardFrame'); if(frame){frame.style.setProperty('--killDur',durS);frame.classList.remove('impact');void frame.offsetWidth;frame.classList.add('impact')}
+}
+
+function updateSpecialState(m,p){let color=p[0]; enPassant=null; if(p[1]==='p'&&Math.abs(m.tr-m.fr)===2)enPassant={r:(m.fr+m.tr)/2,c:m.fc}; if(p[1]==='k'){castling[color].K=false;castling[color].Q=false;} if(p[1]==='r'){if(m.fr===(color==='w'?7:0)&&m.fc===0)castling[color].Q=false; if(m.fr===(color==='w'?7:0)&&m.fc===7)castling[color].K=false;} if(m.tr===7&&m.tc===0)castling.w.Q=false; if(m.tr===7&&m.tc===7)castling.w.K=false; if(m.tr===0&&m.tc===0)castling.b.Q=false; if(m.tr===0&&m.tc===7)castling.b.K=false;}
+function commitMove(m,promo,cap){
+ let p=B[m.fr][m.fc]; history.push({B:clone(B),turn,taken:JSON.parse(JSON.stringify(taken)),lastMove,castling:cloneCastling(),enPassant:enPassant?{...enPassant}:null,halfmoveClock,winningEndgameClock});
+ const special=m.castle?'，王車易位':m.enPassant?'，吃過路兵':'';
+ const finish=()=>{ if(cap)taken[cap[0]].push(cap); apply(m,promo); updateSpecialState(m,p); lastMove=m; selected=null;legal=[]; animating=false; const opp=p[0]==='w'?'b':'w'; const chk=inCheck(opp); const progress=!!cap||p[1]==='p'||(p[1]==='p'&&(m.tr===0||m.tr===7)); halfmoveClock=progress?0:halfmoveClock+1; updateWinningEndgameClock(); moveTrace.push({color:p[0],piece:p[1],check:chk,cap:!!cap,progress,code:moveCode(m),phase:endgamePhase(),material:pieceSummary().material}); gameMoves.push({ply:gameMoves.length+1,color:p[0],piece:p[1],from:files[m.fc]+(8-m.fr),to:files[m.tc]+(8-m.tr),capture:cap?cap[1]:null,captureName:cap?pname(cap):'',promotion:promo||'',check:chk,castle:m.castle||'',enPassant:!!m.enPassant,notation:moveNotation(p,m,cap,promo,chk)}); log(`${pname(p)} ${files[m.fc]}${8-m.fr} → ${files[m.tc]}${8-m.tr}${cap?'，擊碎 '+pname(cap):special}`); turn=turn==='w'?'b':'w'; afterMove(); };
+ if(cap && trainingMode){ finish(); return; }
+ if(cap){ animating=true; const dur=killDuration(cap); bigKillFX(p,cap,m); const cell=boardEl.querySelector(`[data-r="${m.enPassant?m.capr:m.tr}"][data-c="${m.enPassant?m.capc:m.tc}"]`); const victim=cell&&cell.querySelector('.piece'); if(victim){victim.style.setProperty('--killDur',(dur/1000)+'s');victim.classList.add('kill'); const slash=document.createElement('div'); slash.className='slash'; slash.style.setProperty('--killDur',(dur/1000)+'s'); cell.appendChild(slash);} setTimeout(finish,dur); }
+ else finish();
+}
+function announceResult(kind){
+ if(!endBanner)return;
+ if(kind==='stalemate'){
+   endTitle.textContent='DRAW'; endSub.textContent='強制逼和';
+   endReason.innerHTML='輪到行棋方時，<b>沒有任何合法步</b>，但國王<b>沒有被將軍</b>。<br>也就是：不動沒事，能動的格子都會被將軍，所以直接和棋。';
+ }else if(kind==='insufficient'){
+   endTitle.textContent='DRAW'; endSub.textContent='不足將死材料';
+   endReason.innerHTML='雙方剩餘棋子已經<b>無法強制將死</b>。<br>例如：王對王、王加主教對王、王加騎士對王。';
+ }else if(kind==='repetition'){
+   endTitle.textContent='DRAW'; endSub.textContent='三次重複局面';
+   endReason.innerHTML='同一局面已經出現三次。<br>為避免無意義追逐與循環將軍，棋局直接判和。';
+ }else if(kind==='fifty'){
+   endTitle.textContent='DRAW'; endSub.textContent=trainingMode?'訓練模式30步無進展':'50步規則';
+   endReason.innerHTML=(trainingMode?'訓練模式中，連續<b>30步</b>沒有吃子也沒有兵移動。':'正式對局中，連續<b>50步</b>沒有吃子也沒有兵移動。')+'<br>棋局缺乏進展，直接判和。';
+ }else{
+   endTitle.textContent='CHECKMATE'; endSub.textContent='將死';
+   endReason.innerHTML='輪到行棋方時，<b>沒有任何合法步</b>，而且國王正在被將軍。';
+ }
+ endBanner.classList.remove('show'); void endBanner.offsetWidth; endBanner.classList.add('show');
+}
+
+function bishopSquareColor(r,c){return (r+c)%2;}
+function insufficientMaterialReason(){
+  const pieces=[];
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++)if(B[r][c])pieces.push({p:B[r][c],r,c});
+  const nonKings=pieces.filter(x=>x.p[1]!=='k');
+  if(nonKings.length===0)return '王對王，無法將死。';
+  if(nonKings.length===1){
+    const t=nonKings[0].p[1];
+    if(t==='b')return '王加主教對王，無法強制將死。';
+    if(t==='n')return '王加騎士對王，無法強制將死。';
+  }
+  if(nonKings.length===2 && nonKings.every(x=>x.p[1]==='b')){
+    if(nonKings[0].p[0]!==nonKings[1].p[0] && bishopSquareColor(nonKings[0].r,nonKings[0].c)===bishopSquareColor(nonKings[1].r,nonKings[1].c)){
+      return '雙方只剩同色格主教，無法強制將死。';
+    }
+  }
+  return '';
+}
+function drawByNoProgress(){
+  const limit=trainingMode?30:50;
+  return halfmoveClock>=limit ? limit : 0;
+}
+function materialAdvantage(){
+  let w=0,b=0;
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+    const p=B[r][c]; if(!p||p[1]==='k')continue;
+    const v=values[p[1]]||0;
+    if(p[0]==='w')w+=v; else b+=v;
+  }
+  return {w,b,diff:w-b,leader:Math.abs(w-b)<180?'none':(w>b?'w':'b'),margin:Math.abs(w-b)};
+}
+function currentRepetitionCount(){
+  return repetitionCount(simplePositionKey(turn))+1;
+}
+function afterMove(){
+ let moves=allMoves(turn), checked=inCheck(turn);
+ if(checked){toast.textContent='CHECK!';toast.classList.remove('show');void toast.offsetWidth;toast.classList.add('show')}
+ if(moves.length===0){
+   gameOver=true;
+   if(checked){let winner=turn==='w'?'b':'w'; log('將死：沒有合法步，且國王正在被將軍。'); learnFromResult(winner,{reason:'checkmate',winner}); announceResult('checkmate');}
+   else{log('強制逼和：沒有任何合法步，但國王未被將軍。'); learnFromResult('draw',{reason:'stalemate',stalemated:turn,causer:turn==='w'?'b':'w',advantage:materialAdvantage()}); announceResult('stalemate');}
+ }else{
+   const im=insufficientMaterialReason();
+   if(im){
+     gameOver=true; log('和棋：不足將死材料。'+im); learnFromResult('draw',{reason:'insufficient',advantage:materialAdvantage()}); announceResult('insufficient');
+   }else if(currentRepetitionCount()>=3){
+     gameOver=true; log('和棋：三次重複局面。'); learnFromResult('draw',{reason:'repetition',advantage:materialAdvantage()}); announceResult('repetition');
+   }else{
+     const np=drawByNoProgress();
+     if(np){
+       gameOver=true; log('和棋：'+(trainingMode?'訓練模式30步無進展。':'50步規則。')); learnFromResult('draw',{reason:trainingMode?'training30':'fifty',advantage:materialAdvantage()}); announceResult('fifty');
+     }
+   }
+ }
+ render();
+ if(gameOver && trainingMode){
+   trainingDone++;
+   if(trainingTarget && trainingDone>=trainingTarget){ if(parallelTraining) stopTrainingV27(); else stopTraining(); return; }
+   setTimeout(()=>init(),8);
+   return;
+ }
+ scheduleAI();
+}
+function showPromotion(color){promoChoices.innerHTML=''; for(let t of ['q','r','b','n']){let btn=document.createElement('button');btn.innerHTML=icon(color+t,true);btn.onclick=()=>{promoModal.style.display='none';let m=pendingPromotion;pendingPromotion=null;commitMove(m,t,B[m.tr][m.tc]);}; promoChoices.appendChild(btn)} promoModal.style.display='flex';}
+function inCheck(color){let kr=-1,kc=-1;for(let r=0;r<8;r++)for(let c=0;c<8;c++)if(B[r][c]===color+'k'){kr=r;kc=c} if(kr<0)return false;let opp=color==='w'?'b':'w';for(let r=0;r<8;r++)for(let c=0;c<8;c++)if(B[r][c]&&B[r][c][0]===opp)for(let m of pseudo(r,c))if(m.tr===kr&&m.tc===kc)return true;return false}
+function syncModes(){
+  const w=document.getElementById('whiteMode'), b=document.getElementById('blackMode');
+  if(w&&b) sideMode={w:w.value,b:b.value};
+}
+function isAITurn(){return sideMode[turn]&&sideMode[turn]!=='human'}
+function scheduleAI(){
+  syncModes();
+  if(!gameOver&&isAITurn()&&!animating&&!aiThinking){
+    aiThinking=true;
+    setTimeout(()=>{aiThinking=false; aiMove();}, trainingMode?12:(sideMode.w!=='human'&&sideMode.b!=='human'?420:650));
+  }
+}
+function aiMove(){
+  syncModes();
+  if(gameOver||sideMode[turn]==='human')return;
+  let moves=allMoves(turn); if(!moves.length){afterMove();return}
+  let mode=sideMode[turn], key=learnKey(turn), best=chooseAIMove(turn,mode,moves);
+  if(mode==='auto')learnTrace[turn].push({key,move:moveCode(best)});
+  move(best,false,'q');
+}
+function chooseAIMove(color,mode,moves){
+  if(mode==='random'){
+    // 亂走：完全隨機，適合測試與搞笑觀戰。
+    return moves[Math.floor(Math.random()*moves.length)];
+  }
+  if(mode==='easy'){
+    // 簡單：大多隨機，偶爾吃子，所以會犯明顯錯誤。
+    if(Math.random()<0.30){
+      let caps=moves.filter(m=>captureValue(m)>0);
+      if(caps.length)return caps[Math.floor(Math.random()*caps.length)];
+    }
+    return moves[Math.floor(Math.random()*moves.length)];
+  }
+  if(mode==='greedy')return bestByProfile(color,moves,{depth:1,noise:.16,capture:1.85,exchange:.35,hanging:.45,sacrificeGuard:.45,protect:.25,check:.45,center:.25,mobility:.20,safety:.25,castle:.25,promo:1.1,stalemate:1,loop:.25});
+  if(mode==='tactical')return bestByProfile(color,moves,{depth:2,noise:.045,capture:1.05,exchange:1.85,hanging:1.25,sacrifice:1.35,sacrificeGuard:1.55,protect:1.15,check:1.05,center:.82,mobility:.82,safety:.90,castle:.8,promo:1.12,stalemate:1.25,loop:.75});
+  if(mode==='aggressive')return bestByProfile(color,moves,{depth:2,noise:.10,capture:1.10,exchange:.95,hanging:.75,sacrifice:1.05,sacrificeGuard:.85,protect:.65,check:1.22,center:.85,mobility:.90,safety:.45,castle:.25,promo:1.0,stalemate:1,loop:.9});
+  if(mode==='defensive')return bestByProfile(color,moves,{depth:2,noise:.08,capture:.85,exchange:1.15,hanging:1.45,sacrificeGuard:1.65,protect:1.55,check:.45,center:.45,mobility:.45,safety:1.65,castle:1.45,promo:1.0,stalemate:1,loop:.65});
+  if(mode==='positional')return bestByProfile(color,moves,{depth:2,noise:.06,capture:.85,exchange:1.05,hanging:1.0,sacrificeGuard:1.10,protect:1.35,check:.65,center:1.45,mobility:1.15,safety:.85,castle:.85,promo:1.0,stalemate:1,loop:.85});
+  if(mode==='endgame')return bestByProfile(color,moves,{depth:3,noise:.04,capture:1.05,exchange:1.25,hanging:1.1,sacrificeGuard:1.25,protect:1.05,check:1.05,center:.65,mobility:.75,safety:.95,castle:.25,promo:1.55,stalemate:1.35,loop:1.0});
+  if(mode==='normal')return bestByProfile(color,moves,{depth:2,noise:.10,capture:1.0,exchange:1.0,hanging:1.0,sacrificeGuard:1.0,protect:1.0,check:.9,center:1.0,mobility:1.0,safety:1.0,castle:1.0,promo:1.0,stalemate:1.0,loop:.8});
+  if(mode==='auto'){
+    // v1.7 大師級 AI：最後 Boss。重視王安全、攻防地圖、有效進攻、小博大交換、反無意義犧牲、升變與逼殺網。
+    return bestByProfile(color,moves,{depth:3,noise:trainingMode?.026*trainingExploreBias:.004,capture:1.02,exchange:2.45,hanging:2.20,sacrifice:1.05,sacrificeGuard:2.75,protect:2.10,check:1.02,center:1.18,mobility:1.12,safety:1.55,castle:1.20,promo:2.15,endgame:1.90,stalemate:2.25,learn:1,master:1,loop:2.25,explore:trainingMode?1.05*trainingExploreBias:.12});
+  }
+  // 困難：小型 minimax，保守避逼和，整體比單步權重穩。
+  return bestByProfile(color,moves,{depth:3,noise:.015,capture:1.0,exchange:1.35,hanging:1.2,sacrifice:1.05,sacrificeGuard:1.45,protect:1.25,check:1.0,center:1.05,mobility:1.0,safety:1.1,castle:1.0,promo:1.15,stalemate:1.35,loop:1.15});
+}
+function bestByProfile(color,moves,profile){
+  let best=moves[0], bestScore=-Infinity;
+  for(let m of moves){
+    let s=profileScoreMove(color,m,profile)+(Math.random()*2-1)*(profile.noise||0)*100;
+    if(s>bestScore){bestScore=s;best=m;}
+  }
+  return best;
+}
+
+function simplePositionKey(sideToMove){
+  return B.flat().map(x=>x||'--').join(',')+'|'+sideToMove+'|'+(enPassant?enPassant.r+','+enPassant.c:'-')+'|'+castling.w.K+castling.w.Q+castling.b.K+castling.b.Q;
+}
+function repetitionCount(key){
+  let n=0;
+  for(const h of history){
+    const oldB=B, oldCastling=castling, oldEP=enPassant;
+    B=h.B; castling=h.castling||castling; enPassant=h.enPassant||null;
+    if(simplePositionKey(h.turn)===key)n++;
+    B=oldB; castling=oldCastling; enPassant=oldEP;
+  }
+  return n;
+}
+function recentQueenCheckSpam(color){
+  let n=0;
+  for(let i=moveTrace.length-1;i>=0&&i>=moveTrace.length-8;i--){
+    const x=moveTrace[i];
+    if(x.color!==color)continue;
+    if(x.piece==='q'&&x.check&&!x.cap&&!x.progress)n++;
+    else break;
+  }
+  return n;
+}
+function profileScoreMove(color,m,profile){
+  const snap=snapshotState();
+  const cap=m.enPassant?B[m.capr][m.capc]:B[m.tr][m.tc];
+  const mover=B[m.fr][m.fc];
+  let base=scoreMove(color,m,profile.depth||1);
+  let extra=0;
+  extra += (cap?values[cap[1]]:0) * .45 * (profile.capture??1);
+  extra += exchangeTacticScore(color,m,mover,cap,profile);
+  if(profile.learn){extra += learnedMoveScore(color,m); extra += databaseDiversityScore(color,m,profile);}
+  if(profile.explore)extra += explorationScore(color,m,mover,cap,profile);
+  if(m.castle)extra += 70*(profile.castle??1);
+  if(mover[1]==='p'&&(m.tr===0||m.tr===7))extra += 520*(profile.promo??1);
+  const oppBeforeColor=color==='w'?'b':'w';
+  const oppMovesBefore=allMoves(oppBeforeColor).length;
+  // 位置偏好：中心與前進，讓 AI 個性更明顯。
+  const centerDist=Math.abs(3.5-m.tr)+Math.abs(3.5-m.tc);
+  extra += (7-centerDist*1.6)*10*(profile.center??1);
+  if(mover[1]==='p')extra += (color==='w'?(6-m.tr):(m.tr-1))*9*(profile.center??1);
+  apply(m,'q'); updateSpecialState(m,mover);
+  const opp=color==='w'?'b':'w';
+  const myMoves=allMoves(color).length, oppMoves=allMoves(opp).length;
+  const givesCheck=inCheck(opp);
+  if(givesCheck)extra += 95*(profile.check??1);
+  extra += effectiveAttackAndSacrificeScore(color,m,mover,cap,profile,oppMoves,givesCheck);
+  extra += endgameMoveScore(color,m,mover,cap,profile,oppMoves,givesCheck,oppMovesBefore);
+  if(inCheck(color))extra -= 120*(profile.safety??1);
+  extra += (myMoves-oppMoves)*4*(profile.mobility??1);
+  // v1.5 反死循環：重複局面與無進展連續將軍都扣分，尤其避免皇后永無止境追王。
+  const loopW=profile.loop??0;
+  if(loopW){
+    const rep=repetitionCount(simplePositionKey(opp));
+    if(rep>0)extra -= (180*rep+120*Math.max(0,rep-1))*loopW;
+    const progress=!!cap || mover[1]==='p' || (mover[1]==='p'&&(m.tr===0||m.tr===7)) || oppMoves<=1;
+    if(givesCheck && !progress){
+      extra -= 70*loopW;
+      if(mover[1]==='q')extra -= (140+recentQueenCheckSpam(color)*180)*loopW;
+      if(oppMoves>3)extra -= 45*loopW; // 將了但沒有縮小敵方活路，視為空轉。
+    }
+  }
+  // 避免優勢局把對方逼和；殘局流與困難 AI 更重視。
+  if(oppMoves===0)extra += givesCheck?600000:-600000*(profile.stalemate??1);
+  if(profile.master)extra += masterLevelEval(color)*0.56;
+  restoreState(snap);
+  return base+extra;
+}
+
+
+function isNovelMove(color,m){
+  const key=learnKey(color), code=moveCode(m);
+  const rec=learnDB.moves&&learnDB.moves[key]&&learnDB.moves[key][code];
+  return !rec || (rec.n||0)<2;
+}
+function explorationScore(color,m,mover,cap,profile){
+  // v2.1：AI訓練探索權重。
+  // 目的：大師級互練時鼓勵嘗試新路線、合理犧牲、攻王與升變，但不獎勵自殺式送子。
+  const opp=color==='w'?'b':'w';
+  const w=profile.explore||0;
+  const moverVal=values[mover[1]]||0, capVal=cap?values[cap[1]]:0;
+  const snap=snapshotState();
+  apply(m,'q'); updateSpecialState(m,mover);
+  const attacked=squareAttackedBy(m.tr,m.tc,opp);
+  const defended=squareAttackedBy(m.tr,m.tc,color);
+  const givesCheck=inCheck(opp);
+  const oppMoves=allMoves(opp).length;
+  const myMoves=allMoves(color).length;
+  let s=0;
+  // 新路線：沒學過或很少走過，訓練模式給探索分；正式對局很低。
+  if(isNovelMove(color,m))s+=28*w;
+  // 合理冒險：犧牲小子但有將軍、壓縮合法步、或吃到更大子，給分。
+  const net=capVal-moverVal;
+  if(attacked && moverVal<=330 && (givesCheck||oppMoves<=3||net>80))s+=70*w;
+  // 有補償的犧牲：進攻敵王、縮小對方行動空間、有隊友保護。
+  if(attacked && defended && (givesCheck||oppMoves<myMoves))s+=38*w;
+  // 升變與推進：訓練時鼓勵尋找新的兵路。
+  if(mover[1]==='p'){
+    const progress=color==='w'?(6-m.tr):(m.tr-1);
+    s+=Math.max(0,progress)*8*w;
+    if(m.tr===0||m.tr===7)s+=160*w;
+  }
+  // 真正有效攻擊：不是空將軍，而是讓敵方合法步減少。
+  if(givesCheck && oppMoves<=4)s+=45*w;
+  if(oppMoves<=2)s+=80*w;
+  // 禁止把探索當自殺：大子無保護送死、皇后亂衝、無補償犧牲重扣。
+  if(attacked && !defended && capVal<moverVal*.45 && !givesCheck){
+    s-=Math.min(360,moverVal*.42)*w;
+  }
+  if(mover[1]==='q' && attacked && !defended && capVal<500)s-=260*w;
+  // 避免訓練也學會死循環。
+  if(givesCheck && !cap && oppMoves>4)s-=35*w;
+  restoreState(snap);
+  return s;
+}
+
+function findKing(color){
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++)if(B[r][c]===color+'k')return {r,c};
+  return {r:-1,c:-1};
+}
+function attackMap(color){
+  const map=Array.from({length:8},()=>Array(8).fill(0));
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+    if(!B[r][c]||B[r][c][0]!==color)continue;
+    for(const m of pseudo(r,c))if(inside(m.tr,m.tc))map[m.tr][m.tc]++;
+  }
+  return map;
+}
+function pawnShieldScore(color,king){
+  if(king.r<0)return 0;
+  let dir=color==='w'?-1:1, s=0;
+  for(const dc of[-1,0,1]){
+    const r=king.r+dir, c=king.c+dc;
+    if(inside(r,c)&&B[r][c]===color+'p')s+=24;
+  }
+  return s;
+}
+function masterLevelEval(color){
+  const opp=color==='w'?'b':'w';
+  const myK=findKing(color), opK=findKing(opp);
+  const myAtk=attackMap(color), opAtk=attackMap(opp);
+  let score=0;
+  score += pawnShieldScore(color,myK)-pawnShieldScore(opp,opK);
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+    const p=B[r][c]; if(!p)continue;
+    const mine=p[0]===color, sign=mine?1:-1, t=p[1], val=values[t]||0;
+    const myPressure=myAtk[r][c]||0, opPressure=opAtk[r][c]||0;
+    const centerDist=Math.abs(3.5-r)+Math.abs(3.5-c);
+    score += sign*Math.max(0,18-centerDist*5);
+    if(t==='p'){
+      const progress=p[0]==='w'?(6-r):(r-1);
+      score += sign*progress*11;
+      if((p[0]==='w'&&r<=2)||(p[0]==='b'&&r>=5))score += sign*24;
+    }
+    if(t==='n'||t==='b')score += sign*((r>1&&r<6&&c>1&&c<6)?20:-4);
+    if(t==='r')score += sign*((c===0||c===7)?4:10);
+    if(t==='q')score += sign*(Math.max(0,4-centerDist)*6);
+    // 保護與懸掛：高價值棋被攻擊且保護不足，會被重扣。
+    if(mine){
+      if(myPressure>0)score += Math.min(30,5+myPressure*6);
+      if(opPressure>myPressure)score -= Math.min(260,val*(0.16+0.06*(opPressure-myPressure)));
+    }else{
+      if(myPressure>opPressure)score += Math.min(220,val*(0.11+0.05*(myPressure-opPressure)));
+      if(opPressure>0)score -= Math.min(24,opPressure*4);
+    }
+    // 國王相對特徵：敵方大子靠近我王很危險；我方大子靠近敵王可施壓。
+    const kTarget=mine?opK:myK;
+    if(kTarget.r>=0&&(t==='q'||t==='r'||t==='b'||t==='n')){
+      const d=Math.abs(r-kTarget.r)+Math.abs(c-kTarget.c);
+      const pressure=(t==='q'?38:t==='r'?28:t==='b'?20:18);
+      score += sign*Math.max(0,pressure-d*7);
+    }
+  }
+  // 攻擊圖總量：不是盲目多走，而是有火力覆蓋才加分。
+  let myCover=0, opCover=0;
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){myCover+=Math.min(3,myAtk[r][c]);opCover+=Math.min(3,opAtk[r][c]);}
+  score += (myCover-opCover)*5;
+  // 大師級修正：逼近敵王、限制敵方合法步、降低己方王暴露。
+  const myMob=allMoves(color).length, opMob=allMoves(opp).length;
+  score += (myMob-opMob)*7;
+  if(inCheck(opp))score += 85;
+  if(inCheck(color))score -= 140;
+  if(opMob<=2 && !inCheck(color))score += (3-opMob)*120;
+  score += endgameStaticScore(color)*0.85;
+  // 學習庫局面修正：讓同一台瀏覽器越打越有偏好，但不壓過基本棋理。
+  const key=learnKey(color);
+  if(learnDB.moves&&learnDB.moves[key]){
+    const vals=Object.values(learnDB.moves[key]).map(x=>x.score||0);
+    if(vals.length)score += Math.max(-120,Math.min(120,vals.reduce((a,b)=>a+b,0)/vals.length))*0.7;
+  }
+  return score;
+}
+
+
+function attackSquaresFrom(r,c,piece,includeOwn=false){
+  const color=piece[0], t=piece[1], out=[];
+  const push=(rr,cc)=>{if(inside(rr,cc))out.push([rr,cc]);};
+  if(t==='p'){
+    const d=color==='w'?-1:1;
+    for(const dc of[-1,1])push(r+d,c+dc);
+  }else if(t==='n'){
+    for(const [dr,dc] of [[1,2],[2,1],[-1,2],[-2,1],[1,-2],[2,-1],[-1,-2],[-2,-1]])push(r+dr,c+dc);
+  }else if('brq'.includes(t)){
+    const dirs=[];
+    if('bq'.includes(t))dirs.push([1,1],[1,-1],[-1,1],[-1,-1]);
+    if('rq'.includes(t))dirs.push([1,0],[-1,0],[0,1],[0,-1]);
+    for(const [dr,dc] of dirs){
+      let rr=r+dr, cc=c+dc;
+      while(inside(rr,cc)){
+        out.push([rr,cc]);
+        if(B[rr][cc])break;
+        rr+=dr; cc+=dc;
+      }
+    }
+  }else if(t==='k'){
+    for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++)if(dr||dc)push(r+dr,c+dc);
+  }
+  return out;
+}
+function pieceReallyAttacks(fr,fc,tr,tc){
+  const p=B[fr][fc]; if(!p)return false;
+  return attackSquaresFrom(fr,fc,p,true).some(([r,c])=>r===tr&&c===tc);
+}
+function attackersToSquare(r,c,byColor){
+  const arr=[];
+  for(let rr=0;rr<8;rr++)for(let cc=0;cc<8;cc++){
+    const p=B[rr][cc];
+    if(p&&p[0]===byColor&&pieceReallyAttacks(rr,cc,r,c))arr.push({r:rr,c:cc,p,val:values[p[1]]||0});
+  }
+  return arr.sort((a,b)=>a.val-b.val);
+}
+function defendedFriendlyTargetsFrom(r,c,piece,color){
+  const opp=color==='w'?'b':'w', out=[];
+  for(const [rr,cc] of attackSquaresFrom(r,c,piece,true)){
+    const target=B[rr][cc];
+    if(target&&target[0]===color){
+      const enemyHits=attackersToSquare(rr,cc,opp).length;
+      if(enemyHits>0)out.push({r:rr,c:cc,p:target,val:values[target[1]]||0,enemyHits});
+    }
+  }
+  return out;
+}
+function attackedEnemyTargetsFrom(r,c,piece,color){
+  const opp=color==='w'?'b':'w', out=[];
+  for(const [rr,cc] of attackSquaresFrom(r,c,piece,true)){
+    const target=B[rr][cc];
+    if(target&&target[0]===opp)out.push({r:rr,c:cc,p:target,val:values[target[1]]||0});
+  }
+  return out.sort((a,b)=>b.val-a.val);
+}
+function effectiveAttackAndSacrificeScore(color,m,mover,cap,profile,oppMoves,givesCheck){
+  // v1.6/v1.7：有效進攻與無意義犧牲懲罰。
+  // 核心：不是「有攻擊就加分」，而是檢查進攻棋是否會白白死掉、是否有隊友保護、是否真的威脅高價值目標或保護關鍵棋。
+  const guardW=profile.sacrificeGuard??1;
+  const protectW=profile.protect??1;
+  const opp=color==='w'?'b':'w';
+  const moverVal=values[mover[1]]||0;
+  const capVal=cap?values[cap[1]]:0;
+  const isPromo=mover[1]==='p'&&(m.tr===0||m.tr===7);
+  const madeProgress=!!cap || mover[1]==='p' || isPromo || givesCheck || oppMoves<=2;
+  const enemyAttackers=attackersToSquare(m.tr,m.tc,opp);
+  const ownDefenders=attackersToSquare(m.tr,m.tc,color).filter(a=>!(a.r===m.tr&&a.c===m.tc));
+  const isHanging=enemyAttackers.length>0 && ownDefenders.length===0;
+  const isUnderDefended=enemyAttackers.length>ownDefenders.length;
+  let s=0;
+
+  // 1. 無意義送子：空走或低效進攻後，棋子會直接被吃且沒有隊友保護。
+  if(isHanging){
+    let penalty=moverVal*(madeProgress?0.22:0.55)*guardW;
+    if(mover[1]==='q')penalty*=1.45;
+    if(mover[1]==='r')penalty*=1.18;
+    s-=penalty;
+  }else if(isUnderDefended && moverVal>=500 && !madeProgress){
+    s-=moverVal*.25*guardW;
+  }
+
+  // 2. 大換小或無後續犧牲：吃到小子但自己落入被吃狀態，重扣。
+  if(capVal>0 && enemyAttackers.length){
+    const net=capVal-moverVal;
+    if(net<0 && (isHanging||isUnderDefended))s+=net*.85*guardW;
+    if(net>=0 && ownDefenders.length>0)s+=Math.min(90,net*.20+28)*guardW;
+  }
+
+  // 3. 有效進攻：移動後真的威脅高價值棋，而且自己不是裸送，才加分。
+  const targets=attackedEnemyTargetsFrom(m.tr,m.tc,mover,color);
+  for(const t of targets.slice(0,2)){
+    if(t.p[1]==='k')continue;
+    const valueGap=t.val-moverVal;
+    if(t.val>=500 || valueGap>0){
+      let bonus=Math.min(150,35+Math.max(0,valueGap)*.22+t.val*.05);
+      if(isHanging)bonus*=0.25;
+      else if(ownDefenders.length>0)bonus*=1.18;
+      s+=bonus*guardW;
+    }else if(t.val<=moverVal*.35 && isHanging){
+      // 威脅小子卻自己會死，通常是假攻擊。
+      s-=Math.min(120,moverVal*.18)*guardW;
+    }
+  }
+
+  // 4. 保護棋子：若這步讓攻擊中的己方大子獲得保護，加分。
+  const protectedTargets=defendedFriendlyTargetsFrom(m.tr,m.tc,mover,color);
+  for(const t of protectedTargets.slice(0,2)){
+    if(t.p[1]==='k')continue;
+    s+=Math.min(110,22+t.val*.09+t.enemyHits*12)*protectW;
+  }
+
+  // 5. 沒吃子、沒將軍、沒壓縮合法步，且沒有形成有效威脅/保護：對高價值棋亂晃扣分。
+  if(!madeProgress && targets.length===0 && protectedTargets.length===0){
+    if(moverVal>=500)s-=70*guardW;
+    else if(moverVal>=320)s-=28*guardW;
+  }
+  return s;
+}
+
+
+function pieceSummary(){
+  let total=0, material=0, data={w:{material:0,pawns:0,queens:0,rooks:0,minors:0,pieces:0},b:{material:0,pawns:0,queens:0,rooks:0,minors:0,pieces:0}};
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+    const p=B[r][c]; if(!p)continue;
+    total++; data[p[0]].pieces++;
+    if(p[1]!=='k'){material+=values[p[1]]||0; data[p[0]].material+=values[p[1]]||0;}
+    if(p[1]==='p')data[p[0]].pawns++;
+    if(p[1]==='q')data[p[0]].queens++;
+    if(p[1]==='r')data[p[0]].rooks++;
+    if(p[1]==='n'||p[1]==='b')data[p[0]].minors++;
+  }
+  return {total,material,...data};
+}
+
+function forcedWinEndgameInfo(color){
+  const ps=pieceSummary();
+  const opp=color==='w'?'b':'w';
+  const mine=ps[color], enemy=ps[opp];
+  if(enemy.material!==0)return {win:false,type:''};
+  if(mine.queens>0)return {win:true,type:'KQK'};
+  if(mine.rooks>0)return {win:true,type:'KRK'};
+  return {win:false,type:''};
+}
+function anyForcedWinEndgame(){
+  const w=forcedWinEndgameInfo('w'); if(w.win)return {color:'w',type:w.type};
+  const b=forcedWinEndgameInfo('b'); if(b.win)return {color:'b',type:b.type};
+  return {color:null,type:''};
+}
+function updateWinningEndgameClock(){
+  const info=anyForcedWinEndgame();
+  winningEndgameClock=info.color?winningEndgameClock+1:0;
+}
+function enemyKingEdgeScore(r,c){
+  if(r<0)return 0;
+  let edge=(r===0||r===7||c===0||c===7)?1:0;
+  let corner=((r===0||r===7)&&(c===0||c===7))?1:0;
+  return edge*100+corner*170;
+}
+function closeEndBanner(){if(endBanner)endBanner.classList.remove('show')}
+function endgamePhase(){
+  const ps=pieceSummary();
+  if(ps.total<=10 || ps.material<=2600)return 1;
+  if(ps.total<=14 || ps.material<=3600)return .55;
+  return 0;
+}
+function promotionDistance(color,r){return color==='w'?r:7-r;}
+function pawnProgress(color,r){return color==='w'?(6-r):(r-1);}
+function isPassedPawnAt(color,r,c){
+  const opp=color==='w'?'b':'w';
+  const step=color==='w'?-1:1;
+  for(let rr=r+step; inside(rr,c); rr+=step){
+    for(const dc of[-1,0,1]){
+      const cc=c+dc;
+      if(inside(rr,cc)&&B[rr][cc]===opp+'p')return false;
+    }
+  }
+  return true;
+}
+function nearestOwnKingDistance(color,r,c){
+  const k=findKing(color);
+  if(k.r<0)return 99;
+  return Math.abs(k.r-r)+Math.abs(k.c-c);
+}
+function endgameStaticScore(color){
+  const phase=endgamePhase();
+  if(!phase)return 0;
+  const opp=color==='w'?'b':'w';
+  const ps=pieceSummary();
+  const myK=findKing(color), opK=findKing(opp);
+  const matAdv=ps[color].material-ps[opp].material;
+  let s=0;
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+    const p=B[r][c]; if(!p)continue;
+    const mine=p[0]===color, sign=mine?1:-1;
+    if(p[1]==='p'){
+      const prog=Math.max(0,pawnProgress(p[0],r));
+      const dist=promotionDistance(p[0],r);
+      let bonus=prog*20 + Math.max(0,6-dist)*18;
+      if(isPassedPawnAt(p[0],r,c)){
+        bonus += 90 + prog*42;
+        if(dist<=2)bonus += 170;
+        if(dist<=1)bonus += 260;
+        const kdist=nearestOwnKingDistance(p[0],r,c);
+        bonus += Math.max(0,5-kdist)*22;
+      }
+      s += sign*bonus;
+    }
+  }
+  // 優勢方殘局：王要前壓、限制敵王，而不是讓皇后/車原地繞圈。
+  if(matAdv>180 && myK.r>=0 && opK.r>=0){
+    const kd=Math.abs(myK.r-opK.r)+Math.abs(myK.c-opK.c);
+    s += Math.max(0,8-kd)*34;
+    const opMob=allMoves(opp).length;
+    s += Math.max(0,8-opMob)*38;
+    if(opMob<=3)s += (4-opMob)*95;
+  }else if(matAdv<-180 && myK.r>=0 && opK.r>=0){
+    const kd=Math.abs(myK.r-opK.r)+Math.abs(myK.c-opK.c);
+    s -= Math.max(0,8-kd)*30;
+  }
+  // 后+兵對裸王時，升變通常比無止境追王更快。
+  if(ps[color].queens>0 && ps[color].pawns>0 && ps[opp].material===0)s += 240;
+  if(ps[opp].queens>0 && ps[opp].pawns>0 && ps[color].material===0)s -= 240;
+  // v2.9：理論必勝殘局收官。KQ/KR 對裸王不只要贏，還要快速收掉。
+  const winInfo=forcedWinEndgameInfo(color), loseInfo=forcedWinEndgameInfo(opp);
+  if(winInfo.win && opK.r>=0 && myK.r>=0){
+    const kd=Math.abs(myK.r-opK.r)+Math.abs(myK.c-opK.c);
+    const opMob=allMoves(opp).length;
+    s += enemyKingEdgeScore(opK.r,opK.c);
+    s += Math.max(0,8-kd)*45;
+    s += Math.max(0,8-opMob)*55;
+    if(opMob<=2)s += (3-opMob)*150;
+    if(winningEndgameClock<=10)s += 240;
+    else if(winningEndgameClock<=20)s += 90;
+    else s -= Math.min(360,(winningEndgameClock-20)*18);
+    s -= halfmoveClock*8;
+  }
+  if(loseInfo.win && opK.r>=0 && myK.r>=0){
+    s -= enemyKingEdgeScore(myK.r,myK.c)*0.7;
+    s += Math.min(160,winningEndgameClock*4); // 劣勢方拖延只給小分，避免過度鼓勵無限繞圈
+  }
+  return s*phase;
+}
+function endgameMoveScore(color,m,mover,cap,profile,oppMoves,givesCheck,oppMovesBefore){
+  const phase=endgamePhase();
+  const w=(profile.endgame??1)*phase;
+  if(!w)return 0;
+  const opp=color==='w'?'b':'w';
+  const ps=pieceSummary();
+  const matAdv=ps[color].material-ps[opp].material;
+  let s=0;
+  if(mover[1]==='p'){
+    const prog=Math.max(0,pawnProgress(color,m.tr));
+    const dist=promotionDistance(color,m.tr);
+    s += prog*28*w;
+    if(isPassedPawnAt(color,m.tr,m.tc)){
+      s += (130+prog*55)*w;
+      if(dist<=2)s += 320*w;
+      if(dist<=1)s += 520*w;
+      if(dist===0)s += 1200*w;
+    }
+  }
+  if(mover[1]==='k' && matAdv>160){
+    const opK=findKing(opp);
+    if(opK.r>=0){
+      const d=Math.abs(m.tr-opK.r)+Math.abs(m.tc-opK.c);
+      s += Math.max(0,8-d)*38*w;
+    }
+  }
+  if(matAdv>180){
+    if(oppMoves<oppMovesBefore)s += (oppMovesBefore-oppMoves)*90*w;
+    if(oppMoves<=3)s += (4-oppMoves)*120*w;
+    if(givesCheck && !cap && oppMoves>=oppMovesBefore-1 && oppMoves>2)s -= 150*w;
+  }
+  // 殘局空轉：大子不吃、不推兵、不縮小敵王活動空間，視為拖延。
+  const progress=!!cap || mover[1]==='p' || oppMoves<oppMovesBefore || oppMoves<=2;
+  if(!progress && (mover[1]==='q'||mover[1]==='r'))s -= 95*w;
+  // v2.9：KQ/KR 對裸王收官模板：逼邊、縮格、己王靠近；超過10手仍沒進展開始小扣。
+  const fw=forcedWinEndgameInfo(color);
+  if(fw.win){
+    const opK=findKing(opp), myK=findKing(color);
+    if(opK.r>=0 && myK.r>=0){
+      const beforeEdge=enemyKingEdgeScore(opK.r,opK.c);
+      const d=Math.abs(myK.r-opK.r)+Math.abs(myK.c-opK.c);
+      s += enemyKingEdgeScore(opK.r,opK.c)*0.65*w;
+      s += Math.max(0,8-d)*34*w;
+      if(oppMoves<oppMovesBefore)s += (oppMovesBefore-oppMoves)*135*w;
+      if(oppMoves<=2)s += 220*w;
+      if(winningEndgameClock>10 && !progress)s -= Math.min(260,(winningEndgameClock-10)*18)*w;
+      if(winningEndgameClock>20 && givesCheck && !cap && oppMoves>1)s -= 90*w;
+    }
+  }
+  return s;
+}
+
+function squareAttackedBy(r,c,byColor){
+  for(let rr=0;rr<8;rr++)for(let cc=0;cc<8;cc++){
+    if(B[rr][cc]&&B[rr][cc][0]===byColor){
+      for(let m of pseudo(rr,cc))if(m.tr===r&&m.tc===c)return true;
+    }
+  }
+  return false;
+}
+function exchangeTacticScore(color,m,mover,cap,profile){
+  // v1.3：交換評估。
+  // 若吃子後所在格會被對方反吃，計算「吃到的價值 - 犧牲棋子的價值」。
+  // 小博大加分；大換小扣分；空走送子也會扣分。
+  const exchangeW=profile.exchange??0;
+  const hangingW=profile.hanging??0;
+  const sacrificeW=profile.sacrifice??1;
+  if(!exchangeW&&!hangingW)return 0;
+  const moverVal=values[mover[1]]||0;
+  const capVal=cap?values[cap[1]]:0;
+  const snap=snapshotState();
+  apply(m,'q'); updateSpecialState(m,mover);
+  const opp=color==='w'?'b':'w';
+  const attacked=squareAttackedBy(m.tr,m.tc,opp);
+  const givesCheck=inCheck(opp);
+  let s=0;
+  if(attacked){
+    const net=capVal-moverVal;
+    if(capVal>0){
+      if(net>0){
+        // 例如主教換城堡、兵吃后：允許犧牲，且額外鼓勵小博大。
+        s += net*1.35*exchangeW*sacrificeW;
+        if(moverVal<=330&&capVal>=500)s += 140*exchangeW;
+        if(moverVal===100&&capVal>=500)s += 180*exchangeW;
+      }else if(net<0){
+        // 例如皇后吃兵後被馬吃：大換小嚴重扣分。
+        s += net*1.85*exchangeW;
+      }else{
+        s += 18*exchangeW;
+      }
+    }else{
+      // 空走到會被吃的位置，除非能將軍或有明顯戰術，否則懲罰。
+      s -= moverVal*.62*hangingW;
+      if(givesCheck)s += 90*(profile.check??1);
+    }
+  }else if(capVal>0){
+    // 免費吃子：不是交換，額外加一點穩定獎勵。
+    s += Math.min(120,capVal*.16)*exchangeW;
+  }
+  // 殘局通路兵/升變兵是未來皇后，不能被當普通小兵亂換掉。
+  if(mover[1]==='p' && endgamePhase()>0){
+    const dist=promotionDistance(color,m.tr);
+    const passed=isPassedPawnAt(color,m.tr,m.tc);
+    if(passed && dist<=2 && attacked && capVal<=moverVal){
+      s -= (dist===1?520:280)*(profile.promo??1);
+    }
+  }
+  restoreState(snap);
+  return s;
+}
+
+function loadLearnDB(){
+  const empty={games:0,moves:{},eliteGames:[],elitePhases:{opening:[],middlegame:[],endgame:[]}};
+  try{
+    // v3.0 保留原本 AI 經驗庫，同時相容 v2.x 舊 key 與舊 eliteGames。
+    const primary=localStorage.getItem('wizardChessLearnDB');
+    if(primary)return normalizeLearnDB(JSON.parse(primary));
+    const legacy=localStorage.getItem('wizard_nnue_purified_brain');
+    if(legacy){
+      const db=normalizeLearnDB(JSON.parse(legacy));
+      try{localStorage.setItem('wizardChessLearnDB',JSON.stringify(db));}catch(e){}
+      return db;
+    }
+    return empty;
+  }catch(e){return empty}
+}
+function emptyElitePhases(){return {opening:[],middlegame:[],endgame:[]};}
+function normalizeLearnDB(db){
+  db=db&&typeof db==='object'?db:{};
+  db.games=Number(db.games||0);
+  db.moves=db.moves&&typeof db.moves==='object'?db.moves:{};
+  db.eliteGames=Array.isArray(db.eliteGames)?db.eliteGames:[];
+  db.elitePhases=db.elitePhases&&typeof db.elitePhases==='object'?db.elitePhases:emptyElitePhases();
+  for(const phase of ['opening','middlegame','endgame']){
+    db.elitePhases[phase]=Array.isArray(db.elitePhases[phase])?db.elitePhases[phase]:[];
+  }
+  // 舊版只有 eliteGames[80] 時，自動分流到三段精華庫，確保舊經驗庫可繼續使用。
+  if(db.eliteGames.length && !db._eliteV3Migrated){
+    for(const g of db.eliteGames){
+      const phases=classifyElitePhases(g.result||'draw',g.reason?{reason:g.reason}:{} ,g.moves||[]);
+      for(const ph of phases){ db.elitePhases[ph].push({...g,phase:ph,legacy:true}); }
+    }
+    trimElitePhases(db);
+    db._eliteV3Migrated=true;
+  }
+  return db;
+}
+function eliteCount(phase){return ((learnDB.elitePhases&&learnDB.elitePhases[phase])||[]).length;}
+function saveLearnDB(){
+  try{localStorage.setItem('wizardChessLearnDB',JSON.stringify(learnDB))}catch(e){}
+}
+function learnKey(color){
+  // 局面鍵：棋子位置 + 輪到誰 + 易位權 + 吃過路兵。簡化版，不含半回合鐘。
+  return B.flat().map(x=>x||'--').join(',')+'|'+color+'|'+JSON.stringify(castling)+'|'+(enPassant?enPassant.r+','+enPassant.c:'-');
+}
+function moveCode(m){
+  return `${m.fr}${m.fc}-${m.tr}${m.tc}${m.castle?m.castle:''}${m.enPassant?'e':''}`;
+}
+function learnedMoveScore(color,m){
+  const key=learnKey(color), code=moveCode(m), rec=learnDB.moves&&learnDB.moves[key]&&learnDB.moves[key][code];
+  if(!rec)return 0;
+  // v2.8：經驗庫仍然有用，但高出場率會衰減，避免 3000+ 次同一路線把AI鎖死。
+  const raw=Math.max(-180,Math.min(180,rec.score||0));
+  const n=rec.n||0;
+  let saturation=0.35 + 0.65/(1+n/1800); // n越大，單一路線權重越不再無限放大
+  if(trainingMode) saturation *= 1/(1+Math.max(0,trainingExploreBias-1)*0.32);
+  return Math.max(-150,Math.min(150,raw*saturation));
+}
+function databaseDiversityScore(color,m,profile){
+  // v2.8：訓練模式專用。未探索或低樣本路線給分；過度重複路線扣分。
+  if(!trainingMode || !profile.learn)return 0;
+  const key=learnKey(color), code=moveCode(m), rec=learnDB.moves&&learnDB.moves[key]&&learnDB.moves[key][code];
+  const n=rec?(rec.n||0):0;
+  const bias=trainingExploreBias||1;
+  if(n===0)return 44*bias;
+  if(n<3)return (30-n*6)*bias;
+  if(n<8)return (16-n*2)*bias;
+  if(n>300){
+    const penalty=Math.min(170, Math.log(n/300+1)*62);
+    return -penalty*bias;
+  }
+  return 0;
+}
+function drawLearningDelta(color,meta={}){
+  const reason=meta.reason||'draw';
+  let base=-5;
+  if(reason==='stalemate')base=-5;
+  else if(reason==='repetition')base=-10;
+  else if(reason==='fifty'||reason==='training30')base=reason==='training30'?-12:-15;
+  else if(reason==='insufficient')base=-8;
+  // 逼和要避免大優勢方亂封死對方；但劣勢方成功逃成逼和，不應重罰。
+  if(reason==='stalemate'){
+    const adv=meta.advantage||{leader:'none',margin:0};
+    if(meta.causer===color && adv.leader===color && adv.margin>=320) return trainingMode?-22:-25;
+    if(meta.stalemated===color && adv.leader!==color && adv.margin>=320) return 2;
+  }
+  // 三次重複與無進展代表雙方都沒打出有效勝負，訓練模式扣得更明確。
+  if(trainingMode && (reason==='repetition'||reason==='training30')) return base-3;
+  return base;
+}
+function learnFromResult(result,meta={}){
+  if(meta && meta.reason==='checkmate' && !meta.finishClock) meta.finishClock=winningEndgameClock||0;
+  if(!learnDB.moves)learnDB.moves={};
+  learnDB.games=(learnDB.games||0)+1;
+  for(const color of ['w','b']){
+    if(sideMode[color]!=='auto')continue;
+    let delta;
+    if(result==='draw') delta=drawLearningDelta(color,meta);
+    else delta=result===color?(trainingMode?22:18):(trainingMode?-26:-22);
+    // 越接近終局的步，責任越高。
+    learnTrace[color].forEach((x,i)=>{
+      const scale=.45+.55*(i+1)/Math.max(1,learnTrace[color].length);
+      learnDB.moves[x.key] ||= {};
+      learnDB.moves[x.key][x.move] ||= {score:0,n:0};
+      const rec=learnDB.moves[x.key][x.move];
+      rec.score=Math.max(-220,Math.min(220,(rec.score||0)+delta*scale));
+      rec.n=(rec.n||0)+1;
+    });
+  }
+  learnDB.drawStats ||= {};
+  if(result==='draw'){
+    const r=meta.reason||'draw';
+    learnDB.drawStats[r]=(learnDB.drawStats[r]||0)+1;
+  }
+  saveEliteGame(result,meta);
+  saveLearnDB();
+  const reasonTxt=result==='draw'?(meta.reason||'draw'):'win/loss';
+  if(developerMode) log(`AI經驗庫已更新：${learnDB.games||0} 局，${Object.keys(learnDB.moves||{}).length} 個局面，${eliteSummaryText()}。本局學習類型：${reasonTxt}`); else log(`AI經驗庫已更新。本局學習類型：${reasonTxt}`);
+}
+
+function moveNotation(p,m,cap,promo,chk){
+  const names={p:'',n:'N',b:'B',r:'R',q:'Q',k:'K'};
+  if(m.castle==='K')return 'O-O'+(chk?'+':'');
+  if(m.castle==='Q')return 'O-O-O'+(chk?'+':'');
+  let s=names[p[1]]||'';
+  if(p[1]==='p'&&cap)s+=files[m.fc];
+  if(cap||m.enPassant)s+='x';
+  s+=files[m.tc]+(8-m.tr);
+  if(promo)s+='='+({q:'Q',r:'R',b:'B',n:'N'}[promo]||promo.toUpperCase());
+  if(m.enPassant)s+=' e.p.';
+  if(chk)s+='+';
+  return s;
+}
+function sideLabel(c){return c==='w'?'白':'黑'}
+function gameRecordText(){
+  if(!gameMoves.length)return '目前尚無棋譜。';
+  let lines=['Wizard Chess v2.6 棋譜','日期：'+new Date().toLocaleString(),'白方：'+(document.getElementById('whiteMode')?.selectedOptions[0]?.textContent||''),'黑方：'+(document.getElementById('blackMode')?.selectedOptions[0]?.textContent||''),'','【由上到下：第一手到最後一手】'];
+  for(let i=0;i<gameMoves.length;i+=2){
+    const n=Math.floor(i/2)+1;
+    const w=gameMoves[i];
+    const b=gameMoves[i+1];
+    lines.push(`${n}. 白：${w?`${w.from}-${w.to} ${w.notation}`:''}`);
+    if(b)lines.push(`   黑：${b.from}-${b.to} ${b.notation}`);
+  }
+  return lines.join('\n');
+}
+function compactGame(){
+  return gameMoves.map(m=>({c:m.color,p:m.piece,f:m.from,t:m.to,n:m.notation,x:m.capture||'',pr:m.promotion||''}));
+}
+
+function phaseMoveSlice(phase,moves=gameMoves){
+  if(phase==='opening')return moves.slice(0,Math.min(30,moves.length));
+  if(phase==='middlegame')return moves.slice(16,Math.min(80,moves.length));
+  return moves.slice(Math.max(0,moves.length-40));
+}
+function classifyElitePhases(result,meta={},moves=gameMoves){
+  const len=(moves&&moves.length)||0;
+  const phases=[];
+  if(len>=8)phases.push('opening');
+  if(len>=24)phases.push('middlegame');
+  const hasEndgame=moveTrace.some(x=>(x.phase||0)>0) || len>=46 || ['checkmate','fifty','training30','insufficient','stalemate'].includes(meta.reason||'');
+  if(hasEndgame)phases.push('endgame');
+  return phases.length?phases:['middlegame'];
+}
+function calcPhaseGameScore(phase,result,meta={}){
+  const caps=moveTrace.filter(x=>x.cap).length;
+  const checks=moveTrace.filter(x=>x.check).length;
+  const len=gameMoves.length;
+  let score=calcGameScore(result,meta);
+  if(phase==='opening'){
+    // 開局精華：短而穩、發展快、不要早早亂送大子。
+    score += Math.max(0,30-Math.min(len,30))*0.5;
+    score += moveTrace.slice(0,30).filter(x=>x.progress).length*1.2;
+    score -= Math.max(0,caps-10)*1.2;
+  }else if(phase==='middlegame'){
+    // 中盤精華：戰術命中、吃子、將軍與攻防轉換。
+    score += caps*2.8 + checks*1.8;
+    score += moveTrace.filter(x=>x.cap&&x.check).length*8;
+  }else if(phase==='endgame'){
+    // 殘局精華：快速收官、升變、避免50步和棋。
+    const promos=gameMoves.filter(m=>m.promotion).length;
+    score += promos*120;
+    if(result==='w'||result==='b')score += 80;
+    if((meta.reason||'')==='checkmate')score += 100;
+    const finish=meta.finishClock||winningEndgameClock||0;
+    if(finish>0)score += Math.max(0,40-finish)*12;
+    if(meta.reason==='fifty'||meta.reason==='training30')score -= 220;
+    if(meta.reason==='insufficient')score -= 80;
+  }
+  return Math.max(0,Math.round(score));
+}
+function trimElitePhases(db=learnDB){
+  db.elitePhases=db.elitePhases&&typeof db.elitePhases==='object'?db.elitePhases:emptyElitePhases();
+  for(const phase of ['opening','middlegame','endgame']){
+    const limit=ELITE_LIMITS[phase]||100;
+    db.elitePhases[phase]=Array.isArray(db.elitePhases[phase])?db.elitePhases[phase]:[];
+    db.elitePhases[phase].sort((a,b)=>(b.score||0)-(a.score||0)||(b.id||0)-(a.id||0));
+    db.elitePhases[phase]=db.elitePhases[phase].slice(0,limit);
+  }
+  // 保留舊欄位作為相容摘要，不再當主要精華庫。
+  db.eliteGames=[...db.elitePhases.opening,...db.elitePhases.middlegame,...db.elitePhases.endgame]
+    .sort((a,b)=>(b.score||0)-(a.score||0)||(b.id||0)-(a.id||0)).slice(0,300);
+}
+function eliteSummaryText(){return `開局 ${eliteCount('opening')}/100｜中盤 ${eliteCount('middlegame')}/100｜殘局 ${eliteCount('endgame')}/100`;}
+
+function calcGameScore(result,meta={}){
+  const caps=moveTrace.filter(x=>x.cap).length, checks=moveTrace.filter(x=>x.check).length;
+  const len=gameMoves.length;
+  let score=30+Math.min(25,len/4)+caps*2+checks*1.5;
+  if(result==='draw')score += (meta.reason==='stalemate' ? -8 : meta.reason==='repetition' ? -14 : (meta.reason==='fifty'||meta.reason==='training30') ? -18 : meta.reason==='insufficient' ? -10 : -6);
+  if(result==='w'||result==='b')score+=12;
+  // 重複無進展局稍微降分。
+  const quiet=moveTrace.filter(x=>!x.progress&&x.check).length;
+  score-=Math.max(0,quiet-6)*3;
+  return Math.max(0,Math.round(score));
+}
+function saveEliteGame(result,meta={}){
+  learnDB.elitePhases=learnDB.elitePhases&&typeof learnDB.elitePhases==='object'?learnDB.elitePhases:emptyElitePhases();
+  if(gameMoves.length<8)return;
+  const phases=classifyElitePhases(result,meta,gameMoves);
+  const base={id:Date.now()+Math.floor(Math.random()*100000),date:new Date().toISOString(),result,reason:meta.reason||'',white:sideMode.w,black:sideMode.b,moves:compactGame(),summary:{plies:gameMoves.length,captures:moveTrace.filter(x=>x.cap).length,checks:moveTrace.filter(x=>x.check).length,finishClock:meta.finishClock||winningEndgameClock||0,promotions:gameMoves.filter(m=>m.promotion).length}};
+  for(const phase of phases){
+    const rec={...base,phase,phaseLabel:ELITE_LABELS[phase],score:calcPhaseGameScore(phase,result,meta)};
+    learnDB.elitePhases[phase].push(rec);
+  }
+  trimElitePhases(learnDB);
+}
+function downloadText(filename,text,type='text/plain;charset=utf-8'){
+  const blob=new Blob([text],{type});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download=filename; document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},100);
+}
+function exportExperience(){
+  const data=normalizeLearnDB(learnDB);
+  data.exportedAt=new Date().toISOString();
+  data.game='Wizard Chess';
+  data.version='3.0';
+  downloadText('WizardChess_AI_Experience_v3_0.json',JSON.stringify(data,null,2),'application/json;charset=utf-8');
+  log('AI經驗庫已匯出。');
+}
+function importExperienceFile(file){
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const db=normalizeLearnDB(JSON.parse(reader.result));
+      learnDB=db; saveLearnDB();
+      if(developerMode) log(`AI經驗庫已匯入：${learnDB.games||0} 局，${eliteSummaryText()}。`); else log('AI經驗庫已匯入。');
+      render();
+    }catch(e){log('匯入失敗：JSON格式錯誤。')}
+  };
+  reader.readAsText(file,'utf-8');
+}
+
+function bestByScore(color,moves,depth,noise){
+  let best=moves[0], bestScore=-Infinity;
+  for(let m of moves){
+    let s=scoreMove(color,m,depth)+(Math.random()*2-1)*noise*100;
+    if(s>bestScore){bestScore=s;best=m;}
+  }
+  return best;
+}
+function scoreMove(color,m,depth){
+  const snap=snapshotState();
+  const cap=m.enPassant?B[m.capr][m.capc]:B[m.tr][m.tc];
+  const mover=B[m.fr][m.fc];
+  apply(m,'q'); updateSpecialState(m,mover);
+  let opp=color==='w'?'b':'w';
+  let score=staticEval(color);
+  if(cap)score+=values[cap[1]]*1.25;
+  if(m.castle)score+=55;
+  if(mover[1]==='p'&&(m.tr===0||m.tr===7))score+=780;
+  score += endgameStaticScore(color)*0.35;
+  if(inCheck(opp))score+=75;
+  let oppMoves=allMoves(opp);
+  if(oppMoves.length===0)score+=inCheck(opp)?500000:-500000; // 將死極佳；逼和極差，避免煮熟鴨子飛。
+  if(depth>1&&oppMoves.length){
+    let worst=Infinity;
+    for(let om of sampleMoves(oppMoves, depth>=3?18:10)){
+      const snap2=snapshotState();
+      const op=B[om.fr][om.fc];
+      apply(om,'q'); updateSpecialState(om,op);
+      let reply=staticEval(color);
+      if(inCheck(color))reply-=80;
+      let myMoves=allMoves(color);
+      if(myMoves.length===0)reply+=inCheck(color)?-500000:500000;
+      restoreState(snap2);
+      if(reply<worst)worst=reply;
+    }
+    score=score*0.65+worst*0.35;
+  }
+  restoreState(snap);
+  return score;
+}
+function captureValue(m){let cap=m.enPassant?B[m.capr][m.capc]:B[m.tr][m.tc];return cap?values[cap[1]]:0}
+function staticEval(color){
+  let s=0;
+  const center=[[3,3],[3,4],[4,3],[4,4]];
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+    let p=B[r][c]; if(!p)continue;
+    let sign=p[0]===color?1:-1, t=p[1];
+    s+=sign*values[t];
+    if(center.some(([rr,cc])=>rr===r&&cc===c))s+=sign*(t==='p'?12:22);
+    if(t==='p')s+=sign*(p[0]==='w'?(6-r):(r-1))*5;
+    if(t==='n'||t==='b')s+=sign*((r>1&&r<6&&c>1&&c<6)?16:0);
+  }
+  // 行動力與將軍狀態
+  let opp=color==='w'?'b':'w';
+  s+=allMoves(color).length*3-allMoves(opp).length*3;
+  if(inCheck(opp))s+=35;
+  if(inCheck(color))s-=45;
+  s += endgameStaticScore(color)*0.42;
+  return s;
+}
+function sampleMoves(moves,limit){
+  return moves.slice().sort((a,b)=>captureValue(b)-captureValue(a)).slice(0,limit);
+}
+function snapshotState(){return {B:clone(B),castling:cloneCastling(),enPassant:enPassant?{...enPassant}:null,halfmoveClock,winningEndgameClock}}
+function restoreState(snap){B=snap.B; castling=snap.castling; enPassant=snap.enPassant; if(typeof snap.halfmoveClock==='number')halfmoveClock=snap.halfmoveClock; if(typeof snap.winningEndgameClock==='number')winningEndgameClock=snap.winningEndgameClock}
+function pname(p){let c=p[0]==='w'?'白':'黑', n={p:'士兵',n:'騎士',b:'主教',r:'城堡',q:'皇后',k:'國王'}[p[1]];return c+n}
+function log(s){logEl.innerHTML=`<div>✦ ${s}</div>`+logEl.innerHTML}
+document.getElementById('newBtn').onclick=()=>{init()};
+if(endRestartBtn)endRestartBtn.onclick=()=>{closeEndBanner();init();};
+if(endCloseBtn)endCloseBtn.onclick=()=>closeEndBanner();
+document.getElementById('whiteMode').onchange=()=>{syncModes();render();scheduleAI()};
+document.getElementById('blackMode').onchange=()=>{syncModes();render();scheduleAI()};
+document.getElementById('undoBtn').onclick=()=>{let h=history.pop(); if(!h)return; moveTrace.pop(); gameMoves.pop(); B=h.B;turn=h.turn;taken=h.taken;lastMove=h.lastMove;castling=h.castling||{w:{K:true,Q:true},b:{K:true,Q:true}};enPassant=h.enPassant||null;halfmoveClock=typeof h.halfmoveClock==='number'?h.halfmoveClock:0;winningEndgameClock=typeof h.winningEndgameClock==='number'?h.winningEndgameClock:0;gameOver=false;selected=null;legal=[];render();scheduleAI();};
+const exportDBBtn=document.getElementById('exportDBBtn');
+const importDBBtn=document.getElementById('importDBBtn');
+const importDBFile=document.getElementById('importDBFile');
+const exportRecordBtn=document.getElementById('exportRecordBtn');
+if(exportDBBtn)exportDBBtn.onclick=exportExperience;
+if(importDBBtn)importDBBtn.onclick=()=>importDBFile&&importDBFile.click();
+if(importDBFile)importDBFile.onchange=e=>{const f=e.target.files&&e.target.files[0]; if(f)importExperienceFile(f); e.target.value='';};
+if(exportRecordBtn)exportRecordBtn.onclick=()=>downloadText('WizardChess_Record.txt',gameRecordText());
+const trainBtn=document.getElementById('trainBtn');
+const stopTrainBtn=document.getElementById('stopTrainBtn');
+function startTraining(){
+  const sel=document.getElementById('trainCount');
+  trainingTarget=Number(sel&&sel.value||100);
+  trainingDone=0;
+  trainingMode=true;
+  trainingExploreBias=0.75; // 主棋局：偏保守，負責驗證已知好路線
+  trainingOldModes={w:document.getElementById('whiteMode').value,b:document.getElementById('blackMode').value};
+  document.getElementById('whiteMode').value='auto';
+  document.getElementById('blackMode').value='auto';
+  syncModes();
+  stopHiddenTrainingLanes&&stopHiddenTrainingLanes();
+  if(developerMode) log(`AI訓練開始：單局大師級AI vs 大師級AI，目標 ${trainingTarget||'無限'} 局。一般訓練不需要密碼；四格高速訓練需解鎖開發者模式。`); else log('AI訓練開始：單局大師級AI vs 大師級AI。');
+  init();
+}
+function stopTraining(){
+  try{ if(typeof stopHiddenTrainingLanes==='function') stopHiddenTrainingLanes(); }catch(e){}
+  trainingMode=false;
+  trainingExploreBias=1.0;
+  if(trainingOldModes){
+    document.getElementById('whiteMode').value=trainingOldModes.w;
+    document.getElementById('blackMode').value=trainingOldModes.b;
+    trainingOldModes=null;
+  }
+  syncModes();
+  saveLearnDB();
+  if(developerMode) log(`AI訓練停止：本次完成 ${trainingDone} 局。經驗庫已保存。`); else log('AI訓練停止。經驗庫已保存。');
+  render();
+}
+if(trainBtn)trainBtn.onclick=startTraining;
+if(stopTrainBtn)stopTrainBtn.onclick=stopTraining;
+
+/* v2.7：四局並行訓練系統
+   主棋局照常顯示；另外三局藏在記憶體中，使用同一套大師級AI、同一套學習/精華棋譜評分標準。
+   目的：同一時間等效跑4局，大幅提高自我訓練效率，但不把垃圾局存進精華庫。 */
+let parallelTraining=false;
+let hiddenTrainingLanes=[];
+let hiddenTrainingTimer=null;
+let hiddenTrainingStats={hiddenGames:0,totalHiddenMoves:0,laneGames:[0,0,0],lastReason:['-','-','-']};
+let hiddenStopAfterRestore=false;
+
+function initialBoardState(){
+  return [['br','bn','bb','bq','bk','bb','bn','br'],['bp','bp','bp','bp','bp','bp','bp','bp'],[null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null],['wp','wp','wp','wp','wp','wp','wp','wp'],['wr','wn','wb','wq','wk','wb','wn','wr']];
+}
+function newHiddenLane(i){
+  return {id:i,B:initialBoardState(),turn:'w',castling:{w:{K:true,Q:true},b:{K:true,Q:true}},enPassant:null,halfmoveClock:0,history:[],moveTrace:[],gameMoves:[],learnTrace:{w:[],b:[]},plies:0,ended:false};
+}
+function saveVisibleStateForHidden(){
+  return {B,turn,castling,enPassant,halfmoveClock,winningEndgameClock,history,moveTrace,gameMoves,learnTrace,gameOver,lastMove,selected,legal,taken,animating,aiThinking};
+}
+function loadLaneState(lane){
+  B=lane.B; turn=lane.turn; castling=lane.castling; enPassant=lane.enPassant; halfmoveClock=lane.halfmoveClock;
+  history=lane.history; moveTrace=lane.moveTrace; gameMoves=lane.gameMoves; learnTrace=lane.learnTrace;
+  gameOver=false; selected=null; legal=[]; lastMove=null;
+}
+function storeLaneState(lane){
+  lane.B=B; lane.turn=turn; lane.castling=castling; lane.enPassant=enPassant; lane.halfmoveClock=halfmoveClock;
+  lane.history=history; lane.moveTrace=moveTrace; lane.gameMoves=gameMoves; lane.learnTrace=learnTrace; lane.plies=gameMoves.length;
+}
+function restoreVisibleStateForHidden(v){
+  B=v.B; turn=v.turn; castling=v.castling; enPassant=v.enPassant; halfmoveClock=v.halfmoveClock; winningEndgameClock=v.winningEndgameClock||0; history=v.history;
+  moveTrace=v.moveTrace; gameMoves=v.gameMoves; learnTrace=v.learnTrace; gameOver=v.gameOver; lastMove=v.lastMove;
+  selected=v.selected; legal=v.legal; taken=v.taken; animating=v.animating; aiThinking=v.aiThinking;
+}
+function hiddenMoveRecord(p,m,cap,promo,chk){
+  return {ply:gameMoves.length+1,color:p[0],piece:p[1],from:files[m.fc]+(8-m.fr),to:files[m.tc]+(8-m.tr),capture:cap?cap[1]:null,captureName:cap?pname(cap):'',promotion:promo||'',check:chk,castle:m.castle||'',enPassant:!!m.enPassant,notation:moveNotation(p,m,cap,promo,chk)};
+}
+function finishHiddenLane(lane,result,meta){
+  learnFromResult(result,meta||{});
+  hiddenTrainingStats.hiddenGames++;
+  hiddenTrainingStats.laneGames[lane.id]++;
+  hiddenTrainingStats.lastReason[lane.id]=(meta&&meta.reason)||result;
+  trainingDone++;
+  Object.assign(lane,newHiddenLane(lane.id));
+  if(trainingTarget && trainingDone>=trainingTarget) hiddenStopAfterRestore=true;
+}
+function hiddenPostMove(lane){
+  const moves=allMoves(turn), checked=inCheck(turn);
+  if(moves.length===0){
+    if(checked){const winner=turn==='w'?'b':'w'; finishHiddenLane(lane,winner,{reason:'checkmate',winner,hidden:true});}
+    else{finishHiddenLane(lane,'draw',{reason:'stalemate',stalemated:turn,causer:turn==='w'?'b':'w',advantage:materialAdvantage(),hidden:true});}
+    return true;
+  }
+  const im=insufficientMaterialReason();
+  if(im){finishHiddenLane(lane,'draw',{reason:'insufficient',advantage:materialAdvantage(),hidden:true});return true;}
+  if(currentRepetitionCount()>=3){finishHiddenLane(lane,'draw',{reason:'repetition',advantage:materialAdvantage(),hidden:true});return true;}
+  const np=drawByNoProgress();
+  if(np){finishHiddenLane(lane,'draw',{reason:trainingMode?'training30':'fifty',advantage:materialAdvantage(),hidden:true});return true;}
+  return false;
+}
+function stepHiddenLane(lane){
+  if(!parallelTraining||!trainingMode)return;
+  loadLaneState(lane);
+  const moves=allMoves(turn);
+  if(!moves.length){hiddenPostMove(lane); storeLaneState(lane); return;}
+  const color=turn;
+  const key=learnKey(color);
+  const oldBias=trainingExploreBias;
+  const laneBias=[1.25,1.75,2.35][lane.id]||1.25; // A小探索、B中探索、C大探索
+  trainingExploreBias=laneBias;
+  const m=chooseAIMove(color,'auto',moves);
+  trainingExploreBias=oldBias;
+  const p=B[m.fr][m.fc];
+  const cap=m.enPassant?B[m.capr][m.capc]:B[m.tr][m.tc];
+  history.push({B:clone(B),turn,taken:{w:[],b:[]},lastMove:null,castling:cloneCastling(),enPassant:enPassant?{...enPassant}:null,halfmoveClock});
+  if(p&&p[0]) learnTrace[p[0]].push({key,move:moveCode(m)});
+  apply(m,'q'); updateSpecialState(m,p);
+  const opp=color==='w'?'b':'w';
+  const chk=inCheck(opp);
+  const progress=!!cap||p[1]==='p';
+  halfmoveClock=progress?0:halfmoveClock+1;
+  moveTrace.push({color:p[0],piece:p[1],check:chk,cap:!!cap,progress,code:moveCode(m)});
+  gameMoves.push(hiddenMoveRecord(p,m,cap,'q',chk));
+  hiddenTrainingStats.totalHiddenMoves++;
+  turn=opp;
+  hiddenPostMove(lane);
+  storeLaneState(lane);
+}
+function updateParallelTrainPanel(){
+  const el=document.getElementById('parallelTrainPanel'); if(!el)return;
+  if(!developerMode){el.innerHTML='🔒 四格高速訓練：鎖定中｜右上角輸入密碼解鎖';return;}
+  if(!parallelTraining){el.innerHTML='🔓 四格高速訓練：已解鎖，尚未啟動';return;}
+  el.innerHTML=`四局差異化訓練中：主局保守0.75 + A探索1.25 + B探索1.75 + C探索2.35<br>總完成：${trainingDone}${trainingTarget?' / '+trainingTarget:' / ∞'}｜隱藏完成：${hiddenTrainingStats.hiddenGames}<br>隱藏局：A ${hiddenTrainingStats.laneGames[0]}（${hiddenTrainingStats.lastReason[0]}）｜B ${hiddenTrainingStats.laneGames[1]}（${hiddenTrainingStats.lastReason[1]}）｜C ${hiddenTrainingStats.laneGames[2]}（${hiddenTrainingStats.lastReason[2]}）`;
+}
+function startHiddenTrainingLanes(){
+  hiddenTrainingLanes=[newHiddenLane(0),newHiddenLane(1),newHiddenLane(2)];
+  hiddenTrainingStats={hiddenGames:0,totalHiddenMoves:0,laneGames:[0,0,0],lastReason:['-','-','-']};
+  hiddenStopAfterRestore=false;
+  parallelTraining=true;
+  if(hiddenTrainingTimer)clearInterval(hiddenTrainingTimer);
+  hiddenTrainingTimer=setInterval(()=>{
+    if(!parallelTraining||!trainingMode)return;
+    const visible=saveVisibleStateForHidden();
+    try{
+      for(const lane of hiddenTrainingLanes){
+        // 每個隱藏棋局每輪走一步；實際效果是四局同時往前推進。
+        stepHiddenLane(lane);
+        if(hiddenStopAfterRestore)break;
+      }
+    }catch(e){console.error('隱藏訓練錯誤',e);}
+    restoreVisibleStateForHidden(visible);
+    updateParallelTrainPanel();
+    if(hiddenStopAfterRestore){hiddenStopAfterRestore=false; stopTrainingV27();}
+  },18);
+}
+function stopHiddenTrainingLanes(){
+  parallelTraining=false;
+  if(hiddenTrainingTimer){clearInterval(hiddenTrainingTimer);hiddenTrainingTimer=null;}
+  updateParallelTrainPanel();
+}
+function startTrainingV27(){
+  if(!developerMode){ unlockDeveloperMode(true); if(!developerMode)return; }
+  const sel=document.getElementById('trainCount');
+  trainingTarget=Number(sel&&sel.value||100);
+  trainingDone=0;
+  trainingMode=true;
+  trainingExploreBias=0.75; // 主棋局：偏保守，負責驗證已知好路線
+  trainingOldModes={w:document.getElementById('whiteMode').value,b:document.getElementById('blackMode').value};
+  document.getElementById('whiteMode').value='auto';
+  document.getElementById('blackMode').value='auto';
+  syncModes();
+  if(developerMode) log(`四局AI訓練開始：主棋局 + 3個隱藏棋局，大師級AI互練，目標 ${trainingTarget||'無限'} 局。好局會依同一套評分進精華庫。`); else log('四局AI訓練開始。');
+  startHiddenTrainingLanes();
+  init();
+  updateParallelTrainPanel();
+}
+function stopTrainingV27(){
+  stopHiddenTrainingLanes();
+  trainingMode=false;
+  trainingExploreBias=1.0;
+  if(trainingOldModes){
+    document.getElementById('whiteMode').value=trainingOldModes.w;
+    document.getElementById('blackMode').value=trainingOldModes.b;
+    trainingOldModes=null;
+  }
+  syncModes();
+  saveLearnDB();
+  if(developerMode) log(`四局AI訓練停止：本次完成 ${trainingDone} 局，其中隱藏棋局完成 ${hiddenTrainingStats.hiddenGames} 局。經驗庫已保存。`); else log('四局AI訓練停止。經驗庫已保存。');
+  render();
+  updateParallelTrainPanel();
+}
+const trainFastBtn=document.getElementById('trainFastBtn');
+const devUnlockBtn=document.getElementById('devUnlockBtn');
+function unlockDeveloperMode(fromFastButton=false){
+  const pwd=prompt('請輸入開發者密碼');
+  if(pwd==='6028'){
+    developerMode=true;
+    document.body.classList.add('devMode');
+    if(devUnlockBtn){devUnlockBtn.textContent='🔓 開發者';devUnlockBtn.classList.add('unlocked');}
+    log('開發者模式已解鎖：四格高速訓練可用。');
+    updateParallelTrainPanel();
+    render();
+    return true;
+  }
+  if(pwd!==null) alert('密碼錯誤');
+  if(fromFastButton) log('四格高速訓練未啟動：密碼錯誤或取消。');
+  return false;
+}
+function stopAnyTraining(){
+  if(parallelTraining) stopTrainingV27();
+  else stopTraining();
+}
+if(trainBtn)trainBtn.onclick=startTraining;
+if(trainFastBtn)trainFastBtn.onclick=startTrainingV27;
+if(stopTrainBtn)stopTrainBtn.onclick=stopAnyTraining;
+if(devUnlockBtn)devUnlockBtn.onclick=()=>unlockDeveloperMode(false);
+updateParallelTrainPanel();
+
+window.addEventListener('error', e=>{
+  const s=document.getElementById('status');
+  if(s) s.innerHTML='<b style="color:#ff8a8a">程式錯誤：</b>'+e.message+'<br>已啟動棋盤保護模式，請重新開局或回報此畫面。';
+  try{fallbackRenderBoard();}catch(_){}
+});
+function fallbackRenderBoard(){
+  const b=document.getElementById('board'); if(!b)return;
+  if(b.children&&b.children.length>=64)return;
+  const start=[['br','bn','bb','bq','bk','bb','bn','br'],['bp','bp','bp','bp','bp','bp','bp','bp'],[null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null],['wp','wp','wp','wp','wp','wp','wp','wp'],['wr','wn','wb','wq','wk','wb','wn','wr']];
+  const uni={wk:'♔',wq:'♕',wr:'♖',wb:'♗',wn:'♘',wp:'♙',bk:'♚',bq:'♛',br:'♜',bb:'♝',bn:'♞',bp:'♟'};
+  b.innerHTML='';
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){const cell=document.createElement('div');cell.className='cell '+((r+c)%2?'dark':'light');cell.dataset.r=r;cell.dataset.c=c;const p=start[r][c];cell.innerHTML='<span class="coord">'+(r===7?files[c]:'')+(c===0?8-r:'')+'</span>'+(p?'<div class="piece '+(p[0]==='w'?'white':'black')+'" style="font-size:70px;display:flex;align-items:center;justify-content:center">'+uni[p]+'</div>':'');b.appendChild(cell);}
+}
+function safeBoot(){
+  try{init();}
+  catch(e){
+    console.error(e);
+    const s=document.getElementById('status');
+    if(s)s.innerHTML='<b style="color:#ff8a8a">啟動修正：</b>'+e.message+'<br>已用保護模式顯示棋盤。';
+    fallbackRenderBoard();
+  }
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',safeBoot);else safeBoot();
+</script>
+</body>
+</html>
